@@ -18,7 +18,7 @@ class LocalBusTest {
         val receivedAllEvents = mutableListOf<Event>()
         val receivedUserEvents = mutableListOf<UserEvent>()
         val receivedAnotherEvents = mutableListOf<AnotherEvent>()
-        val localBus = LocalBus<Event>()
+        val localBus = localBusOf<Event>()
         val UserID = "123"
         val events = listOf(
                 AddUser(UserID),

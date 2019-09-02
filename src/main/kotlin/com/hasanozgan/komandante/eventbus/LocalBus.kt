@@ -4,8 +4,11 @@ import io.reactivex.subjects.PublishSubject
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.reflect
 
+// localBus constructor
+fun <T> localBusOf(): LocalBus<T> = LocalBus()
+
 @Suppress("UNCHECKED_CAST")
-class LocalBus<T> : EventBus<T> {
+class LocalBus<T> internal constructor() : EventBus<T> {
     private val publisher = PublishSubject.create<T>()
 
     override fun publish(event: T) {
