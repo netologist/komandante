@@ -18,6 +18,7 @@ class LocalBusTest {
         val receivedAllEvents = mutableListOf<Event>()
         val receivedUserEvents = mutableListOf<UserEvent>()
         val receivedAnotherEvents = mutableListOf<AnotherEvent>()
+
         val localBus = localBusOf<Event>()
         val UserID = "123"
         val events = listOf(
@@ -29,7 +30,7 @@ class LocalBusTest {
 
         @JvmStatic
         @BeforeClass
-        fun prepareTest() {
+        fun setup() {
             localBus.subscribe {
                 receivedAllEvents.add(it)
             }

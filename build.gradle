@@ -27,6 +27,75 @@ def kotlinXCoroutinesVersion = "1.3.0"
 def arrowVersion = "0.9.0"
 def rxjavaVersion = "2.2.0"
 def hamcrestVersion = "2.0.0.0"
+def h2Version = "1.4.193"
+def eclipselinkVersion = "2.7.4"
+def hikariVersion = "3.3.1"
+def mockkVersion = "1.9.3"
+
+// integration test setup starting
+configurations {
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+sourceSets {
+    main {
+        output.dir file("out")
+    }
+    test {
+        output.dir file("out")
+    }
+    integrationTest {
+        kotlin {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integration-test/kotlin')
+        }
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integration-test/java')
+            output.dir file('out')
+        }
+        resources.srcDir file('src/integration-test/resources')
+    }
+}
+
+task integrationTest(type: Test) {
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    mustRunAfter test
+}
+
+check.dependsOn integrationTest
+
+//integrationTest {
+//    useJUnitPlatform {
+//        includeEngines 'spek2'
+//    }
+//}
+
+idea {
+    module {
+        testSourceDirs += sourceSets.integrationTest.java.srcDirs
+        testSourceDirs += sourceSets.integrationTest.kotlin.srcDirs
+        testResourceDirs += sourceSets.integrationTest.resources.srcDirs
+        scopes.TEST.plus += [configurations.integrationTestCompile]
+    }
+}
+// integration test setup finished
+
+
+// dependency kotlin hack: fixed different kotlin-reflect versions on dependencies
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        def requested = details.requested
+        if (requested.group == 'org.jetbrains.kotlin' && requested.name == 'kotlin-reflect') {
+            details.useVersion kotlinVersion
+        }
+    }
+}
+
 
 dependencies {
     // Use the Kotlin JDK 8 standard library.
@@ -45,6 +114,12 @@ dependencies {
     // Reflection
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
 
+    // JPA 2.0 implementantion ???
+    implementation "org.eclipse.persistence:eclipselink:$eclipselinkVersion"
+
+    // Hikari JPA datasource connection pool
+    implementation "com.zaxxer:HikariCP:$hikariVersion"
+
     // Use the Kotlin test library.
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
 
@@ -53,4 +128,9 @@ dependencies {
 
     // Hamcrest for Junit
     testImplementation "org.hamcrest:hamcrest-junit:$hamcrestVersion"
+
+    // Mockk Version
+    testImplementation "io.mockk:mockk:$mockkVersion"
+
+    integrationTestImplementation "com.h2database:h2:$h2Version"
 }

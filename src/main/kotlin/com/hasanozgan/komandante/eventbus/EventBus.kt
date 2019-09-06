@@ -1,9 +1,14 @@
 package com.hasanozgan.komandante.eventbus
 
-typealias EventHandler<T> = (T) -> Unit
+import io.reactivex.functions.Consumer
 
-interface EventBus<T> {
+typealias EventHandler<T> = (T) -> Unit
+typealias ErrorHandler = (error: Throwable) -> Unit
+
+interface EventBus<T:Any> {
     fun publish(event: T)
     fun subscribe(eventHandler: EventHandler<T>)
+    fun subscribe(eventHandler: EventHandler<T>, onError: ErrorHandler)
     fun <T> subscribeOf(eventHandler: EventHandler<in T>)
+    fun <T> subscribeOf(eventHandler: EventHandler<in T>, onError: ErrorHandler)
 }
