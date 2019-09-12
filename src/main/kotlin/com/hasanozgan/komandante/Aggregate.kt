@@ -1,7 +1,6 @@
 package com.hasanozgan.komandante
 
-import arrow.core.None
-import arrow.core.Option
+import arrow.core.Try
 import java.util.*
 
 typealias AggregateID = UUID
@@ -12,16 +11,17 @@ fun newAggregateID(): AggregateID {
 
 typealias AggregateType = String
 
-interface Aggregate : CommandHandler {
+interface Aggregate {
     var id: AggregateID
     var events: MutableList<Event>
     var version: Int
 
-    fun apply(event: Event): Result<Event, DomainError>
+    fun handle(command: Command): Try<Event>
 
-    fun storeEvent(event:Event): Option<DomainError> {
+    fun apply(event: Event): Try<Event>
+
+    fun storeEvent(event:Event) {
         events.add(event)
-        return None
     }
 
     fun clearEvents() {

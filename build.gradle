@@ -107,6 +107,7 @@ dependencies {
 
     // Arrow
     implementation "io.arrow-kt:arrow-core-data:$arrowVersion"
+    implementation "io.arrow-kt:arrow-effects-extensions:$arrowVersion"
 
     // RXJava
     implementation "io.reactivex.rxjava2:rxjava:$rxjavaVersion"

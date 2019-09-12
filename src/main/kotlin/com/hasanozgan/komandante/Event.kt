@@ -13,3 +13,5 @@ abstract class Event() {
     abstract val aggregateID: AggregateID
     abstract val aggregateType: AggregateType
 }
+
+typealias EventList = List<Event>

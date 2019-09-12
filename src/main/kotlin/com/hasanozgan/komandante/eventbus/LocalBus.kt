@@ -1,6 +1,6 @@
 package com.hasanozgan.komandante.eventbus
 
-import io.reactivex.functions.Consumer
+import arrow.effects.IO
 import io.reactivex.subjects.PublishSubject
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.reflect
@@ -13,11 +13,13 @@ class LocalBus<T : Any> internal constructor() : EventBus<T> {
 
     private val publisher = PublishSubject.create<T>()
 
-    override fun publish(event: T) {
+    override fun publish(event: T): IO<T> {
         try {
             publisher.onNext(event)
+            return IO.invoke { event }
         } catch (t: Throwable) {
             publisher.onError(t) // this sample for kafka bus
+            return IO.raiseError(t)
         }
     }
 

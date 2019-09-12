@@ -1,5 +1,8 @@
 package com.hasanozgan.komandante
 
+import arrow.core.Success
+import arrow.core.Try
+
 class BankAccount(override var id: AggregateID) : Aggregate {
     var owner: String = "not/assigned"
     var balance: Double = 0.0
@@ -7,21 +10,23 @@ class BankAccount(override var id: AggregateID) : Aggregate {
     override var events: MutableList<Event> = mutableListOf()
     override var version: Int = 0
 
-    override fun apply(event: Event): Result<Event, DomainError> {
+    override fun apply(event: Event): Try<Event> {
         when (event) {
-            is AccountCreated ->
+            is AccountCreated -> {
                 this.owner = event.owner
+            }
             is DepositPerformed ->
                 this.balance = this.balance.plus(event.amount)
-            is OwnerChanged ->
+            is OwnerChanged -> {
                 this.owner = event.owner
+            }
             is WithdrawalPerformed ->
                 this.balance = this.balance.minus(event.amount)
         }
-        return Accept(event)
+        return Success(event)
     }
 
-    override fun handle(command: Command): Result<Event, DomainError> {
+    override fun handle(command: Command): Try<Event> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }

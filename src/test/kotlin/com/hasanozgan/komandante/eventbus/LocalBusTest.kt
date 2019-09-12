@@ -6,11 +6,11 @@ import org.junit.BeforeClass
 import kotlin.test.Test
 
 interface Event {}
-sealed class UserEvent(userID: String) : Event
+sealed class UserEvent : Event
 
-data class AddUser(val userID: String) : UserEvent(userID)
-data class RemoveUser(val userID: String) : UserEvent(userID)
-data class ChangeUserAddress(val userID: String) : UserEvent(userID)
+data class AddUser(val userID: String) : UserEvent()
+data class RemoveUser(val userID: String) : UserEvent()
+data class ChangeUserAddress(val userID: String) : UserEvent()
 data class AnotherEvent(val keyID: String) : Event
 
 class LocalBusTest {

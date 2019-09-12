@@ -1,12 +1,9 @@
 package com.hasanozgan.komandante
 
-import arrow.core.Option
-import com.hasanozgan.komandante.AggregateID
-import com.hasanozgan.komandante.DomainError
-import com.hasanozgan.komandante.Event
+import arrow.effects.IO
 
 interface EventStore {
-    fun load(aggregateID: AggregateID): List<Event>
-    fun save(events: List<Event>, version: Int): Option<DomainError>
+    fun load(aggregateID: AggregateID): IO<EventList>
+    fun save(events: List<Event>, version: Int): IO<EventList>
 }
 

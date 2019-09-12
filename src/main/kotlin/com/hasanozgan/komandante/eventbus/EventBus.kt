@@ -1,12 +1,12 @@
 package com.hasanozgan.komandante.eventbus
 
-import io.reactivex.functions.Consumer
+import arrow.effects.IO
 
 typealias EventHandler<T> = (T) -> Unit
 typealias ErrorHandler = (error: Throwable) -> Unit
 
-interface EventBus<T:Any> {
-    fun publish(event: T)
+interface EventBus<T : Any> {
+    fun publish(event: T): IO<T>
     fun subscribe(eventHandler: EventHandler<T>)
     fun subscribe(eventHandler: EventHandler<T>, onError: ErrorHandler)
     fun <T> subscribeOf(eventHandler: EventHandler<in T>)
