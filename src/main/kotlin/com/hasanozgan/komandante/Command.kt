@@ -2,7 +2,6 @@ package com.hasanozgan.komandante
 
 typealias CommandType = String
 
-abstract class Command(val aggregateType: AggregateType) {
+abstract class Command {
     abstract val aggregateID: AggregateID
-    abstract val commandType: CommandType
 }

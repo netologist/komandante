@@ -37,19 +37,14 @@ class BankAccountFactory : AggregateFactory {
     }
 }
 
-val BankAccountAggregateType = "bankaccount"
+sealed class BankAccountCommand(override val aggregateID: AggregateID) : Command()
+data class CreateAccount(val accountID: AggregateID, val owner: String) : BankAccountCommand(accountID)
+data class ChangeOwner(val accountID: AggregateID, val owner: String) : BankAccountCommand(accountID)
+data class PerformDeposit(val accountID: AggregateID, val amount: Double) : BankAccountCommand(accountID)
+data class PerformWithdrawal(val accountID: AggregateID, val amount: Double) : BankAccountCommand(accountID)
 
-sealed class BankAccountCommand(override val aggregateID: AggregateID, override val commandType: CommandType) : Command(BankAccountAggregateType)
-data class CreateAccount(val accountID: AggregateID, val owner: String) : BankAccountCommand(accountID, "bankaccount:create_account")
-data class ChangeOwner(val accountID: AggregateID, val owner: String) : BankAccountCommand(accountID, "bankaccount:change_owner")
-data class PerformDeposit(val accountID: AggregateID, val amount: Double) : BankAccountCommand(accountID, "bankaccount:perform_deposit")
-data class PerformWithdrawal(val accountID: AggregateID, val amount: Double) : BankAccountCommand(accountID, "bankaccount:perform_withdrawal")
-
-sealed class BankAccountEvent(override val eventType: EventType) : Event() {
-    override val aggregateType: AggregateType = BankAccountAggregateType
-}
-
-data class AccountCreated(override val aggregateID: AggregateID, val owner: String) : BankAccountEvent("bankaccount:account_created")
-data class DepositPerformed(override val aggregateID: AggregateID, val amount: Double) : BankAccountEvent("bankaccount:deposit_performed")
-data class OwnerChanged(override val aggregateID: AggregateID, val owner: String) : BankAccountEvent("bankaccount:owner_changed")
-data class WithdrawalPerformed(override val aggregateID: AggregateID, val amount: Double) : BankAccountEvent("bankaccount:withdrawal_performed")
+sealed class BankAccountEvent() : Event()
+data class AccountCreated(override val aggregateID: AggregateID, val owner: String) : BankAccountEvent()
+data class DepositPerformed(override val aggregateID: AggregateID, val amount: Double) : BankAccountEvent()
+data class OwnerChanged(override val aggregateID: AggregateID, val owner: String) : BankAccountEvent()
+data class WithdrawalPerformed(override val aggregateID: AggregateID, val amount: Double) : BankAccountEvent()

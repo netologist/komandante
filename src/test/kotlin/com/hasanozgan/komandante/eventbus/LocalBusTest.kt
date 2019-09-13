@@ -1,17 +1,18 @@
 package com.hasanozgan.komandante.eventbus
 
+import com.hasanozgan.komandante.AggregateID
+import com.hasanozgan.komandante.Event
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual
 import org.junit.BeforeClass
 import kotlin.test.Test
 
-interface Event {}
-sealed class UserEvent : Event
+sealed class UserEvent(override val aggregateID: AggregateID) : Event()
 
-data class AddUser(val userID: String) : UserEvent()
-data class RemoveUser(val userID: String) : UserEvent()
-data class ChangeUserAddress(val userID: String) : UserEvent()
-data class AnotherEvent(val keyID: String) : Event
+data class AddUser(val userID: AggregateID) : UserEvent(userID)
+data class RemoveUser(val userID: AggregateID) : UserEvent(userID)
+data class ChangeUserAddress(val userID: AggregateID) : UserEvent(userID)
+data class AnotherEvent(override val aggregateID: AggregateID) : Event()
 
 class LocalBusTest {
     companion object {
@@ -20,12 +21,12 @@ class LocalBusTest {
         val receivedAnotherEvents = mutableListOf<AnotherEvent>()
 
         val localBus = localBusOf<Event>()
-        val UserID = "123"
+        val UserID = AggregateID.randomUUID()
         val events = listOf(
                 AddUser(UserID),
                 RemoveUser(UserID),
                 ChangeUserAddress(UserID),
-                AnotherEvent("456")
+                AnotherEvent(AggregateID.randomUUID())
         )
 
         @JvmStatic
