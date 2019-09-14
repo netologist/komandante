@@ -1,7 +1,11 @@
 package com.hasanozgan.komandante
 
+import arrow.core.Failure
 import arrow.core.Success
 import arrow.core.Try
+import arrow.data.Invalid
+import arrow.data.Valid
+import arrow.data.Validated
 
 class BankAccount(override var id: AggregateID) : Aggregate {
     var owner: String = "not/assigned"
@@ -26,8 +30,22 @@ class BankAccount(override var id: AggregateID) : Aggregate {
         return Success(event)
     }
 
-    override fun handle(command: Command): Try<Event> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun handle(command: Command): Validated<DomainError, Event> {
+        return when (command) {
+            is CreateAccount ->
+                Valid(AccountCreated(command.aggregateID, command.owner))
+            is PerformDeposit ->
+               return Valid(DepositPerformed(command.aggregateID, command.amount))
+            is ChangeOwner ->
+                Valid(OwnerChanged(command.aggregateID, command.owner))
+            is PerformWithdrawal -> {
+                if (balance < command.amount) {
+                    return Invalid(InsufficientBalanceError)
+                }
+                Valid(WithdrawalPerformed(command.aggregateID, command.amount))
+            }
+            else -> Invalid(UnknownCommandError)
+        }
     }
 }
 
@@ -48,3 +66,7 @@ data class AccountCreated(override val aggregateID: AggregateID, val owner: Stri
 data class DepositPerformed(override val aggregateID: AggregateID, val amount: Double) : BankAccountEvent()
 data class OwnerChanged(override val aggregateID: AggregateID, val owner: String) : BankAccountEvent()
 data class WithdrawalPerformed(override val aggregateID: AggregateID, val amount: Double) : BankAccountEvent()
+
+// domain errors
+object InsufficientBalanceError : DomainError(message = "insufficient balance")
+

@@ -1,6 +1,7 @@
 package com.hasanozgan.komandante
 
 import arrow.core.Try
+import arrow.data.Validated
 import java.util.*
 
 typealias AggregateID = UUID
@@ -16,13 +17,12 @@ interface Aggregate {
     var events: MutableList<Event>
     var version: Int
 
-    fun handle(command: Command): Try<Event>
+    fun handle(command: Command): Validated<DomainError, Event>
 
-    fun apply(event: Event): Try<Event>
-
-    fun storeEvent(event:Event) {
-        events.add(event)
+    fun store(event: Event): Try<Event> {
+        return apply(event).map { events.add(it); it }
     }
+    fun apply(event: Event): Try<Event>
 
     fun clearEvents() {
         events.clear()

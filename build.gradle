@@ -61,6 +61,12 @@ sourceSets {
     }
 }
 
+test {
+    testLogging {
+        events "PASSED",  "FAILED", "SKIPPED" //,"STARTED"
+    }
+}
+
 task integrationTest(type: Test) {
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath

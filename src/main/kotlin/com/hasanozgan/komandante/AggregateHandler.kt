@@ -15,10 +15,12 @@ class AggregateHandler(private val store: EventStore, private val bus: EventBus<
 
         return binding {
             val (events) = store.load(aggregateID)
-            events.map { event -> aggregate.apply(event) }.foldLeft(Try { aggregate }, { _, c ->
+            events.map { event -> aggregate.store(event) }.foldLeft(Try { aggregate }, { _, c ->
                 return@foldLeft when (c) {
                     is Failure -> Failure(c.exception)
-                    is Success -> Success(aggregate)
+                    is Success -> {
+                        Success(aggregate)
+                    }
                 }
             })
         }.handleError {
