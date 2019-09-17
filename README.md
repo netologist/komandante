@@ -1,2 +1,5 @@
 # komandante
-komandante is CQRS / ES library
+
+## Work In Progress
+
+Komandante is CQRS / ES toolkit
