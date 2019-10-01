@@ -1,6 +1,5 @@
 package com.hasanozgan.komandante
 
-import arrow.core.Failure
 import arrow.core.Success
 import arrow.core.Try
 import arrow.data.Invalid
@@ -35,7 +34,7 @@ class BankAccount(override var id: AggregateID) : Aggregate {
             is CreateAccount ->
                 Valid(AccountCreated(command.aggregateID, command.owner))
             is PerformDeposit ->
-               return Valid(DepositPerformed(command.aggregateID, command.amount))
+                return Valid(DepositPerformed(command.aggregateID, command.amount))
             is ChangeOwner ->
                 Valid(OwnerChanged(command.aggregateID, command.owner))
             is PerformWithdrawal -> {
@@ -61,11 +60,11 @@ data class ChangeOwner(val accountID: AggregateID, val owner: String) : BankAcco
 data class PerformDeposit(val accountID: AggregateID, val amount: Double) : BankAccountCommand(accountID)
 data class PerformWithdrawal(val accountID: AggregateID, val amount: Double) : BankAccountCommand(accountID)
 
-sealed class BankAccountEvent() : Event()
-data class AccountCreated(override val aggregateID: AggregateID, val owner: String) : BankAccountEvent()
-data class DepositPerformed(override val aggregateID: AggregateID, val amount: Double) : BankAccountEvent()
-data class OwnerChanged(override val aggregateID: AggregateID, val owner: String) : BankAccountEvent()
-data class WithdrawalPerformed(override val aggregateID: AggregateID, val amount: Double) : BankAccountEvent()
+sealed class BankAccountEvent(override val aggregateID: AggregateID) : Event()
+data class AccountCreated(val accountID: AggregateID, val owner: String) : BankAccountEvent(accountID)
+data class DepositPerformed(val accountID: AggregateID, val amount: Double) : BankAccountEvent(accountID)
+data class OwnerChanged(val accountID: AggregateID, val owner: String) : BankAccountEvent(accountID)
+data class WithdrawalPerformed(val accountID: AggregateID, val amount: Double) : BankAccountEvent(accountID)
 
 // domain errors
 object InsufficientBalanceError : DomainError(message = "insufficient balance")

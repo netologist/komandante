@@ -28,13 +28,12 @@ def arrowVersion = "0.9.0"
 def rxjavaVersion = "2.2.0"
 def rxKotlinVersion = "2.2.0"
 def hamcrestVersion = "2.0.0.0"
-def h2Version = "1.4.193"
+def h2Version = "1.4.199"
 def eclipselinkVersion = "2.7.4"
 def hikariVersion = "3.3.1"
 def mockkVersion = "1.9.3"
 def exposedVersion = "0.16.1"
-def jacksonVersion = "2.9.7"
-
+def gsonVersion = "2.8.5"
 
 // integration test setup starting
 configurations {
@@ -79,11 +78,14 @@ task integrationTest(type: Test) {
 
 check.dependsOn integrationTest
 
-//integrationTest {
-//    useJUnitPlatform {
-//        includeEngines 'spek2'
-//    }
-//}
+integrationTest {
+//    useJUnitPlatform()
+    testLogging {
+        events "PASSED",  "FAILED", "SKIPPED" //,"STARTED"
+        displayGranularity 1
+
+    }
+}
 
 idea {
     module {
@@ -136,12 +138,8 @@ dependencies {
     // Exposed DB library
     implementation "org.jetbrains.exposed:exposed:$exposedVersion"
 
-    // Jackson JSON library
-    implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
-    // kotlin hack: this module required for data class constructor parameters
-    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
-    // kotlin hack: this module required for json date format annotation
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
+    // GSON json library
+    implementation "com.google.code.gson:gson:$gsonVersion"
 
     // Use the Kotlin test library.
     testImplementation 'org.jetbrains.kotlin:kotlin-test'

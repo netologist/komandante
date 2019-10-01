@@ -5,13 +5,13 @@ import com.hasanozgan.komandante.*
 import java.time.ZonedDateTime
 
 internal class InMemoryEventStore : EventStore {
-    private val eventDB = mutableMapOf<AggregateID, List<Event>>()
+    private val eventDB = mutableMapOf<AggregateID, EventList>()
 
     override fun load(aggregateID: AggregateID): IO<EventList> {
         return IO.invoke { eventDB[aggregateID] ?: emptyList() }
     }
 
-    override fun save(events: List<Event>, version: Int): IO<EventList> {
+    override fun save(events: EventList, version: Int): IO<EventList> {
         if (events.isEmpty()) {
             return IO.raiseError(EventListEmptyError)
         }
