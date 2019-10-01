@@ -1,6 +1,6 @@
 package com.hasanozgan.komandante.eventstore.inmemory
 
-import arrow.effects.extensions.io.monad.binding
+import arrow.effects.fix
 import com.hasanozgan.komandante.AccountCreated
 import com.hasanozgan.komandante.DepositPerformed
 import com.hasanozgan.komandante.eventstore.createInMemoryEventStore
@@ -16,16 +16,14 @@ class InMemoryEventStoreTest {
         val aliceAccountID = newAggregateID()
 
         val bobEvents = listOf(AccountCreated(bobAccountID, "bob"), DepositPerformed(bobAccountID, 20.0))
-        val aliceEvents = listOf(AccountCreated(aliceAccountID, "alice"), DepositPerformed(bobAccountID, 15.8))
+        val aliceEvents = listOf(AccountCreated(aliceAccountID, "alice"), DepositPerformed(aliceAccountID, 15.8))
 
         val memoryEventStore = createInMemoryEventStore()
         memoryEventStore.save(bobEvents, 2)
         memoryEventStore.save(aliceEvents, 2)
 
-        binding {
-            val (expectedEventList) = memoryEventStore.load(bobAccountID)
-            assertThat(emptyList(), IsEqual(expectedEventList))
-        }
+        val actualEventList = memoryEventStore.load(bobAccountID).fix().unsafeRunSync()
+        assertThat(bobEvents, IsEqual(actualEventList))
     }
 
     @Test
@@ -33,9 +31,7 @@ class InMemoryEventStoreTest {
         val bobAccountID = newAggregateID()
         val memoryEventStore = createInMemoryEventStore()
 
-        binding {
-            val (expectedEventList) = memoryEventStore.load(bobAccountID)
-            assertThat(emptyList(), IsEqual(expectedEventList))
-        }
+        val actualEventList = memoryEventStore.load(bobAccountID).fix().unsafeRunSync()
+        assertThat(emptyList(), IsEqual(actualEventList))
     }
 }
