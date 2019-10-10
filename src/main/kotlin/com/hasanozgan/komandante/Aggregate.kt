@@ -20,8 +20,13 @@ interface Aggregate {
     fun handle(command: Command): Validated<DomainError, Event>
 
     fun store(event: Event): Try<Event> {
-        return apply(event).map { events.add(it); it }
+        return apply(event).map {
+            incrementVersion()
+            it.version = version
+            events.add(it); it
+        }
     }
+
     fun apply(event: Event): Try<Event>
 
     fun clearEvents() {

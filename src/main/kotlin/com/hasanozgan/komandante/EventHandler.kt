@@ -4,7 +4,7 @@ import arrow.core.Try
 
 typealias EventHandlerType = String
 
-interface EventHandler {
+interface EventHandler<T : Event> {
     val handlerType: EventHandlerType
-    fun handle(event: Event): Try<Event>
+    fun <T : Event> handle(event: T): Try<T>
 }

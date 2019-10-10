@@ -1,4 +1,4 @@
-package com.hasanozgan.komandante.eventstore.rdbms
+package com.hasanozgan.komandante.eventstore.exposed
 
 
 import arrow.data.extensions.list.foldable.exists
@@ -10,11 +10,11 @@ import com.hasanozgan.komandante.AggregateID
 import com.hasanozgan.komandante.Event
 import com.hasanozgan.komandante.EventList
 import com.hasanozgan.komandante.EventStore
-import com.hasanozgan.komandante.eventstore.rdbms.dao.Events
-import com.hasanozgan.komandante.eventstore.rdbms.dao.Events.canonicalName
-import com.hasanozgan.komandante.eventstore.rdbms.dao.Events.timestamp
-import com.hasanozgan.komandante.eventstore.rdbms.dao.Events.values
-import com.hasanozgan.komandante.eventstore.rdbms.dao.Events.ver
+import com.hasanozgan.komandante.eventstore.exposed.dao.Events
+import com.hasanozgan.komandante.eventstore.exposed.dao.Events.canonicalName
+import com.hasanozgan.komandante.eventstore.exposed.dao.Events.timestamp
+import com.hasanozgan.komandante.eventstore.exposed.dao.Events.values
+import com.hasanozgan.komandante.eventstore.exposed.dao.Events.ver
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -32,13 +32,13 @@ class CustomExclusionStrategy : ExclusionStrategy {
     }
 }
 
-class RdbmsEventStore : EventStore {
+class ExposedEventStore : EventStore {
     override fun load(aggregateID: AggregateID): IO<EventList> {
         val result = transaction {
             val result = mutableListOf<Event>()
             val gson = GsonBuilder().setExclusionStrategies(CustomExclusionStrategy()).create()
 
-            Events.select { Events.aggregateID.eq(aggregateID) }.map {
+            Events.select { Events.aggregateID.eq(aggregateID) }.sortedBy { timestamp }.map {
                 val eventClazz = Class.forName(it[canonicalName])
                 val event = gson.fromJson(it[values], eventClazz) as (Event)
                 event.version = it[ver]
@@ -50,7 +50,6 @@ class RdbmsEventStore : EventStore {
         return IO.just(result)
     }
 
-    // TOdo switch gson for exclusion strategy without annotation
     override fun save(events: EventList, version: Int): IO<EventList> {
         val gson = GsonBuilder().setExclusionStrategies(CustomExclusionStrategy()).create()
 

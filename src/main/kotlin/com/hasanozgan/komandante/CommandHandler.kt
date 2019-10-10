@@ -18,6 +18,7 @@ class CommandHandler(val aggregateHandler: AggregateHandler) {
             }
             val (appliedEvent) = aggregate.store(event)
             val (stored) = aggregateHandler.save(aggregate).map { appliedEvent }
+
             stored
         }
     }

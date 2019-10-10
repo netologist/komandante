@@ -3,8 +3,6 @@ package com.hasanozgan.komandante
 import arrow.core.Failure
 import arrow.core.Success
 import arrow.effects.IO
-import com.hasanozgan.komandante.eventbus.EventBus
-import com.sun.net.httpserver.Authenticator
 import io.mockk.every
 import io.mockk.mockk
 import org.hamcrest.MatcherAssert.assertThat
@@ -26,11 +24,11 @@ class CommandHandlerTest {
             )
         }
 
-        every { mockEventStore.save(listOf(AccountCreated(accountID, "totoro"), DepositPerformed(accountID, 20.0), DepositPerformed(accountID, 15.20)), 0)} returns IO.invoke { emptyList<Event>() }
+        every { mockEventStore.save(listOf(AccountCreated(accountID, "totoro"), DepositPerformed(accountID, 20.0), DepositPerformed(accountID, 15.20)), 3) } returns IO.invoke { emptyList<Event>() }
 
-        every {mockEventBus.publish(AccountCreated(accountID, "totoro"))} returns IO.invoke { AccountCreated(accountID, "totoro")  }
-        every {mockEventBus.publish(DepositPerformed(accountID, 20.0))} returns IO.invoke { DepositPerformed(accountID, 20.0) }
-        every {mockEventBus.publish(DepositPerformed(accountID, 15.20))} returns IO.invoke { DepositPerformed(accountID, 15.20) }
+        every { mockEventBus.publish(AccountCreated(accountID, "totoro")) } returns IO.invoke { AccountCreated(accountID, "totoro") }
+        every { mockEventBus.publish(DepositPerformed(accountID, 20.0)) } returns IO.invoke { DepositPerformed(accountID, 20.0) }
+        every { mockEventBus.publish(DepositPerformed(accountID, 15.20)) } returns IO.invoke { DepositPerformed(accountID, 15.20) }
 
         val aggregateFactory = BankAccountFactory()
         val aggregateHandler = AggregateHandler(mockEventStore, mockEventBus, aggregateFactory)

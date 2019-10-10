@@ -1,7 +1,10 @@
 package com.hasanozgan.komandante.eventstore.inmemory
 
 import arrow.effects.IO
-import com.hasanozgan.komandante.*
+import com.hasanozgan.komandante.AggregateID
+import com.hasanozgan.komandante.EventList
+import com.hasanozgan.komandante.EventListEmptyError
+import com.hasanozgan.komandante.EventStore
 import java.time.ZonedDateTime
 
 internal class InMemoryEventStore : EventStore {
@@ -16,9 +19,7 @@ internal class InMemoryEventStore : EventStore {
             return IO.raiseError(EventListEmptyError)
         }
 
-        events.forEach{ event ->
-            val i = events.indexOf(event)
-            event.version = version + 1 + i
+        events.forEach { event ->
             event.timestamp = ZonedDateTime.now()
 
             eventDB.compute(event.aggregateID) { _, el -> (el ?: emptyList()).plus(event) }

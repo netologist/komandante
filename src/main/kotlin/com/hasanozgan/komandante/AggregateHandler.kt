@@ -7,7 +7,6 @@ import arrow.data.extensions.list.foldable.foldLeft
 import arrow.effects.extensions.io.applicativeError.handleError
 import arrow.effects.extensions.io.monad.binding
 import arrow.effects.fix
-import com.hasanozgan.komandante.eventbus.EventBus
 
 class AggregateHandler(private val store: EventStore, private val bus: EventBus<Event>, private val aggregateFactory: AggregateFactory) {
     fun load(aggregateID: AggregateID): Try<Aggregate> {
@@ -39,9 +38,10 @@ class AggregateHandler(private val store: EventStore, private val bus: EventBus<
             }).map {
                 it.events.map {
                     val (event) = bus.publish(it)
+                    event.version = events.indexOf(event) + 1
                     event
                 }
-                aggregate
+                it
             }
         }.handleError {
             Failure(it)

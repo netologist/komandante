@@ -1,7 +1,10 @@
 package com.hasanozgan.komandante.eventbus
 
+import arrow.core.Try
 import com.hasanozgan.komandante.AggregateID
 import com.hasanozgan.komandante.Event
+import com.hasanozgan.komandante.EventHandler
+import com.hasanozgan.komandante.EventHandlerType
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual
 import org.junit.BeforeClass
@@ -19,6 +22,7 @@ class LocalBusTest {
         val receivedAllEvents = mutableListOf<Event>()
         val receivedUserEvents = mutableListOf<UserEvent>()
         val receivedAnotherEvents = mutableListOf<AnotherEvent>()
+        val receivedEventHandlerEvents = mutableListOf<Event>()
 
         val localBus = localBusOf<Event>()
         val UserID = AggregateID.randomUUID()
@@ -44,6 +48,18 @@ class LocalBusTest {
                 receivedAnotherEvents.add(it)
             }
 
+            localBus.addHandler(object : EventHandler<UserEvent> {
+                override fun <T : Event> handle(event: T): Try<T> {
+                    receivedEventHandlerEvents.add(event)
+                    return Try.just(event)
+                }
+
+                override val handlerType: EventHandlerType
+                    get() = "test-event-handler"
+
+
+            })
+
             events.forEach {
                 localBus.publish(it)
             }
@@ -68,5 +84,12 @@ class LocalBusTest {
         val anotherEvent = events.filter { it is AnotherEvent }
         assertThat(receivedAnotherEvents.size, IsEqual(anotherEvent.size))
         assertThat(receivedAnotherEvents, IsEqual(anotherEvent))
+    }
+
+    @Test
+    fun shouldAddEventHandler() {
+        val userEvents = events.filter { it is UserEvent }
+        assertThat(receivedEventHandlerEvents.size, IsEqual(userEvents.size))
+        assertThat(receivedEventHandlerEvents, IsEqual(userEvents))
     }
 }

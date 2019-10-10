@@ -129,9 +129,6 @@ dependencies {
     // Reflection
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
 
-    // JPA 2.0 implementantion ???
-    implementation "org.eclipse.persistence:eclipselink:$eclipselinkVersion"
-
     // Hikari JPA datasource connection pool
     implementation "com.zaxxer:HikariCP:$hikariVersion"
 

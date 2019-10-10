@@ -1,4 +1,4 @@
-package com.hasanozgan.komandante.eventstore.rdbms.dao
+package com.hasanozgan.komandante.eventstore.exposed.dao
 
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.dao.UUIDEntity
@@ -8,7 +8,7 @@ import java.util.*
 class Event(id: EntityID<UUID>) : UUIDEntity(id) {
     companion object : UUIDEntityClass<Event>(Events)
 
-    var objectName by Events.canonicalName
+    var canonicalName by Events.canonicalName
     var values by Events.values
     var timestamp = Events.timestamp
     var ver = Events.ver

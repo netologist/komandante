@@ -2,7 +2,6 @@ package com.hasanozgan.komandante
 
 import arrow.core.Success
 import arrow.effects.IO
-import com.hasanozgan.komandante.eventbus.EventBus
 import io.mockk.every
 import io.mockk.mockk
 import org.hamcrest.MatcherAssert.assertThat
@@ -55,7 +54,7 @@ class AggregateHandlerTest {
                 AccountCreated(accountID, "totoro"),
                 DepositPerformed(accountID, 20.0)
         )
-        every { mockEventStore.save(events, version) } returns IO.invoke {events}
+        every { mockEventStore.save(events, version) } returns IO.invoke { events }
         for (event in events) {
             every { mockEventBus.publish(event) } returns IO.invoke { event }
         }
@@ -73,6 +72,7 @@ class AggregateHandlerTest {
 
         assertThat("totoro", IsEqual(bankAccount.owner))
         assertThat(20.0, IsEqual(bankAccount.balance))
+        assertThat(listOf(1, 2), IsEqual(bankAccount.events.map({ it.version }).toList()))
     }
 
     @Test
