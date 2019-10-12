@@ -14,7 +14,7 @@ import com.hasanozgan.komandante.eventstore.exposed.dao.Events
 import com.hasanozgan.komandante.eventstore.exposed.dao.Events.canonicalName
 import com.hasanozgan.komandante.eventstore.exposed.dao.Events.timestamp
 import com.hasanozgan.komandante.eventstore.exposed.dao.Events.values
-import com.hasanozgan.komandante.eventstore.exposed.dao.Events.ver
+import com.hasanozgan.komandante.eventstore.exposed.dao.Events.version
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -41,10 +41,14 @@ class ExposedEventStore : EventStore {
             Events.select { Events.aggregateID.eq(aggregateID) }.sortedBy { timestamp }.map {
                 val eventClazz = Class.forName(it[canonicalName])
                 val event = gson.fromJson(it[values], eventClazz) as (Event)
-                event.version = it[ver]
+                event.javaClass.superclass.declaredFields.filter { it.name.equals("aggregateID") }.forEach {
+                    it.setAccessible(true);
+                    it.set(event, aggregateID)
+                }
+                event.version = it[version]
                 event.timestamp = it[timestamp].toGregorianCalendar().toZonedDateTime()
                 result.add(event)
-            }
+            }.distinct()
             return@transaction result.toList()
         }
         return IO.just(result)
@@ -53,26 +57,19 @@ class ExposedEventStore : EventStore {
     override fun save(events: EventList, version: Int): IO<EventList> {
         val gson = GsonBuilder().setExclusionStrategies(CustomExclusionStrategy()).create()
 
-        val transaction = transaction {
-            val result = mutableListOf<Event>()
-            for (e in events) {
-                val record = Events.insert {
-                    it[aggregateID] = e.aggregateID
-                    it[timestamp] = DateTime(e.timestamp.toInstant().toEpochMilli())
-                    it[canonicalName] = e.javaClass.canonicalName
-                    it[values] = gson.toJson(e)
-                    it[ver] = e.version
+        events.filter { version == 0 || it.version >= version }.forEach { event ->
+            transaction {
+                Events.insert {
+                    it[aggregateID] = event.aggregateID
+                    it[timestamp] = DateTime(event.timestamp.toInstant().toEpochMilli())
+                    it[canonicalName] = event.javaClass.canonicalName
+                    it[values] = gson.toJson(event)
+                    it[this.version] = event.version
                 } get Events.id
-
-                if (record._value != null) {
-                    result.add(e)
-                }
+                commit()
             }
-            commit()
-
-            return@transaction result.toList()
         }
 
-        return IO.just(transaction)
+        return IO.just(events)
     }
 }

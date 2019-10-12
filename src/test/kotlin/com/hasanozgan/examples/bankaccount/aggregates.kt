@@ -1,12 +1,13 @@
-package com.hasanozgan.komandante
+package com.hasanozgan.examples.bankaccount
 
 import arrow.core.Success
 import arrow.core.Try
 import arrow.data.Invalid
 import arrow.data.Valid
 import arrow.data.Validated
+import com.hasanozgan.komandante.*
 
-class BankAccount(override var id: AggregateID) : Aggregate {
+class BankAccountAggregate(override var id: AggregateID) : Aggregate {
     var owner: String = "not/assigned"
     var balance: Double = 0.0
 
@@ -48,24 +49,8 @@ class BankAccount(override var id: AggregateID) : Aggregate {
     }
 }
 
-class BankAccountFactory : AggregateFactory {
+class BankAccountAggregateFactory : AggregateFactory {
     override fun create(aggregateID: AggregateID): Aggregate {
-        return BankAccount(aggregateID)
+        return BankAccountAggregate(aggregateID)
     }
 }
-
-sealed class BankAccountCommand(override val aggregateID: AggregateID) : Command()
-data class CreateAccount(val accountID: AggregateID, val owner: String) : BankAccountCommand(accountID)
-data class ChangeOwner(val accountID: AggregateID, val owner: String) : BankAccountCommand(accountID)
-data class PerformDeposit(val accountID: AggregateID, val amount: Double) : BankAccountCommand(accountID)
-data class PerformWithdrawal(val accountID: AggregateID, val amount: Double) : BankAccountCommand(accountID)
-
-sealed class BankAccountEvent(override val aggregateID: AggregateID) : Event()
-data class AccountCreated(val accountID: AggregateID, val owner: String) : BankAccountEvent(accountID)
-data class DepositPerformed(val accountID: AggregateID, val amount: Double) : BankAccountEvent(accountID)
-data class OwnerChanged(val accountID: AggregateID, val owner: String) : BankAccountEvent(accountID)
-data class WithdrawalPerformed(val accountID: AggregateID, val amount: Double) : BankAccountEvent(accountID)
-
-// domain errors
-object InsufficientBalanceError : DomainError(message = "insufficient balance")
-

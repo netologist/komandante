@@ -1,8 +1,8 @@
 package com.hasanozgan.komandante.eventstore.jdbc
 
 import arrow.effects.fix
-import com.hasanozgan.komandante.AccountCreated
-import com.hasanozgan.komandante.DepositPerformed
+import com.hasanozgan.examples.bankaccount.AccountCreated
+import com.hasanozgan.examples.bankaccount.DepositPerformed
 import com.hasanozgan.komandante.eventstore.createJdbcEventStore
 import com.hasanozgan.komandante.newAggregateID
 import com.zaxxer.hikari.HikariDataSource
@@ -64,8 +64,8 @@ class JdbcEventStoreTest {
         val aliceEvents = listOf(AccountCreated(aliceAccountID, "alice"), DepositPerformed(aliceAccountID, 15.8))
 
         val jdbcEventStore = createJdbcEventStore(datasource)
-        jdbcEventStore.save(bobEvents, 2)
-        jdbcEventStore.save(aliceEvents, 2)
+        jdbcEventStore.save(bobEvents, 0)
+        jdbcEventStore.save(aliceEvents, 0)
 
         val actualEventList = jdbcEventStore.load(bobAccountID).fix().unsafeRunSync()
         MatcherAssert.assertThat(bobEvents, IsEqual(actualEventList))

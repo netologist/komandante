@@ -2,6 +2,7 @@ package com.hasanozgan.komandante
 
 import arrow.core.Success
 import arrow.effects.IO
+import com.hasanozgan.examples.bankaccount.*
 import io.mockk.every
 import io.mockk.mockk
 import org.hamcrest.MatcherAssert.assertThat
@@ -27,7 +28,7 @@ class AggregateHandlerTest {
             )
         }
 
-        val aggregateFactory = BankAccountFactory()
+        val aggregateFactory = BankAccountAggregateFactory()
         val aggregateHandler = AggregateHandler(mockEventStore, mockEventBus, aggregateFactory)
 
         val result = aggregateHandler.load(accountID)
@@ -35,7 +36,7 @@ class AggregateHandlerTest {
         assertThat(result.isSuccess(), IsEqual(true))
 
         val accepted = result as Success
-        val aggregate = accepted.value as BankAccount
+        val aggregate = accepted.value as BankAccountAggregate
 
         assertThat("tsubasa", IsEqual(aggregate.owner))
 
@@ -46,7 +47,7 @@ class AggregateHandlerTest {
     @Test
     fun shouldAggregateHandlerSaveToEventStoreAndPublishToEventBus() {
         val mockEventStore = mockk<EventStore>()
-        val mockEventBus = mockk<EventBus<Event>>()
+        val mockEventBus = mockk<EventBus<out Event>>()
 
         val accountID = newAggregateID()
         val version = 2
@@ -59,7 +60,7 @@ class AggregateHandlerTest {
             every { mockEventBus.publish(event) } returns IO.invoke { event }
         }
 
-        val aggregateFactory = BankAccountFactory()
+        val aggregateFactory = BankAccountAggregateFactory()
         val aggregateHandler = AggregateHandler(mockEventStore, mockEventBus, aggregateFactory)
         val aggregate = aggregateFactory.create(accountID)
         aggregate.events = events.toMutableList()
@@ -68,7 +69,7 @@ class AggregateHandlerTest {
 
         assertTrue(maybeSaved.isSuccess())
 
-        val bankAccount = (maybeSaved as Success).value as BankAccount
+        val bankAccount = (maybeSaved as Success).value as BankAccountAggregate
 
         assertThat("totoro", IsEqual(bankAccount.owner))
         assertThat(20.0, IsEqual(bankAccount.balance))
@@ -88,7 +89,7 @@ class AggregateHandlerTest {
         )
         every { mockEventStore.save(events, version) } returns IO.raiseError(EventListEmptyError)
 
-        val aggregateFactory = BankAccountFactory()
+        val aggregateFactory = BankAccountAggregateFactory()
         val aggregateHandler = AggregateHandler(mockEventStore, mockEventBus, aggregateFactory)
         val aggregate = aggregateFactory.create(accountID)
         aggregate.events = events.toMutableList()

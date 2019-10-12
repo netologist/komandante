@@ -1,6 +1,5 @@
 package com.hasanozgan.komandante.eventbus
 
-import arrow.core.Try
 import com.hasanozgan.komandante.AggregateID
 import com.hasanozgan.komandante.Event
 import com.hasanozgan.komandante.EventHandler
@@ -48,17 +47,15 @@ class LocalBusTest {
                 receivedAnotherEvents.add(it)
             }
 
-            localBus.addHandler(object : EventHandler<UserEvent> {
-                override fun <T : Event> handle(event: T): Try<T> {
+            val eventHandler = object : EventHandler<UserEvent> {
+                override fun <T : Event> handle(event: T) {
                     receivedEventHandlerEvents.add(event)
-                    return Try.just(event)
                 }
 
                 override val handlerType: EventHandlerType
                     get() = "test-event-handler"
-
-
-            })
+            }
+            localBus.addHandler(eventHandler)
 
             events.forEach {
                 localBus.publish(it)

@@ -3,6 +3,7 @@ package com.hasanozgan.komandante
 import arrow.core.Failure
 import arrow.core.Success
 import arrow.effects.IO
+import com.hasanozgan.examples.bankaccount.*
 import io.mockk.every
 import io.mockk.mockk
 import org.hamcrest.MatcherAssert.assertThat
@@ -14,7 +15,7 @@ class CommandHandlerTest {
     @Test
     fun shouldCommandHandlerReturnAnEvent() {
         val mockEventStore = mockk<EventStore>()
-        val mockEventBus = mockk<EventBus<Event>>()
+        val mockEventBus = mockk<EventBus<out Event>>()
 
         val accountID = newAggregateID()
         every { mockEventStore.load(accountID) } returns IO.invoke {
@@ -30,7 +31,7 @@ class CommandHandlerTest {
         every { mockEventBus.publish(DepositPerformed(accountID, 20.0)) } returns IO.invoke { DepositPerformed(accountID, 20.0) }
         every { mockEventBus.publish(DepositPerformed(accountID, 15.20)) } returns IO.invoke { DepositPerformed(accountID, 15.20) }
 
-        val aggregateFactory = BankAccountFactory()
+        val aggregateFactory = BankAccountAggregateFactory()
         val aggregateHandler = AggregateHandler(mockEventStore, mockEventBus, aggregateFactory)
         val commandHandler = CommandHandler(aggregateHandler)
         val maybeEvent = commandHandler.handle(PerformDeposit(accountID, 15.20))
@@ -52,7 +53,7 @@ class CommandHandlerTest {
             )
         }
 
-        val aggregateFactory = BankAccountFactory()
+        val aggregateFactory = BankAccountAggregateFactory()
         val aggregateHandler = AggregateHandler(mockEventStore, mockEventBus, aggregateFactory)
         val commandHandler = CommandHandler(aggregateHandler)
         val maybeEvent = commandHandler.handle(PerformWithdrawal(accountID, 20.10))

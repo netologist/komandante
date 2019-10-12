@@ -1,8 +1,8 @@
 package com.hasanozgan.komandante.eventstore.inmemory
 
 import arrow.effects.fix
-import com.hasanozgan.komandante.AccountCreated
-import com.hasanozgan.komandante.DepositPerformed
+import com.hasanozgan.examples.bankaccount.AccountCreated
+import com.hasanozgan.examples.bankaccount.DepositPerformed
 import com.hasanozgan.komandante.eventstore.createInMemoryEventStore
 import com.hasanozgan.komandante.newAggregateID
 import org.hamcrest.MatcherAssert.assertThat

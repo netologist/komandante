@@ -66,7 +66,7 @@ sourceSets {
 
 test {
     testLogging {
-        events "PASSED",  "FAILED", "SKIPPED" //,"STARTED"
+        events "PASSED", "FAILED", "SKIPPED" //,"STARTED"
     }
 }
 
@@ -81,7 +81,7 @@ check.dependsOn integrationTest
 integrationTest {
 //    useJUnitPlatform()
     testLogging {
-        events "PASSED",  "FAILED", "SKIPPED" //,"STARTED"
+        events "PASSED", "FAILED", "SKIPPED" //,"STARTED"
         displayGranularity 1
 
     }

@@ -8,7 +8,7 @@ import arrow.effects.extensions.io.applicativeError.handleError
 import arrow.effects.extensions.io.monad.binding
 import arrow.effects.fix
 
-class AggregateHandler(private val store: EventStore, private val bus: EventBus<Event>, private val aggregateFactory: AggregateFactory) {
+class AggregateHandler(private val store: EventStore, private val bus: EventBus<out Event>, private val aggregateFactory: AggregateFactory) {
     fun load(aggregateID: AggregateID): Try<Aggregate> {
         val aggregate = aggregateFactory.create(aggregateID)
 

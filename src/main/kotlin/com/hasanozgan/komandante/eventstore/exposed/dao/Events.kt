@@ -7,6 +7,6 @@ object Events : UUIDTable() {
     var values = text("values")
 
     var timestamp = datetime("timestamp")
-    var ver = integer("version")
+    var version = integer("version")
     var aggregateID = uuid("aggregate_id")
 }

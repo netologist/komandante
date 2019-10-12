@@ -14,7 +14,7 @@ import javax.sql.DataSource
 class JdbcEventStore(val dataSource: DataSource) : EventStore {
 
     override fun load(aggregateID: AggregateID): IO<EventList> {
-        val stmt = dataSource.getConnection().prepareStatement("SELECT id, aggregate_id, canonical_name, `values`, `timestamp`, version FROM events e WHERE e.aggregate_id=? ORDER BY e.timestamp")
+        val stmt = dataSource.getConnection().prepareStatement("SELECT DISTINCT id, aggregate_id, canonical_name, `values`, `timestamp`, version FROM events e WHERE e.aggregate_id=? ORDER BY e.timestamp")
         stmt.setString(1, aggregateID.toString())
 
         val result = mutableListOf<Event>()
@@ -28,6 +28,10 @@ class JdbcEventStore(val dataSource: DataSource) : EventStore {
             val eventClazz = Class.forName(canonicalName)
 
             val event = gson.fromJson(values, eventClazz) as (Event)
+            event.javaClass.superclass.declaredFields.filter { it.name.equals("aggregateID") }.forEach {
+                it.setAccessible(true);
+                it.set(event, aggregateID)
+            }
             event.version = rs.getInt("version")
             event.timestamp = timestamp.toGregorianCalendar().toZonedDateTime()
 
@@ -41,7 +45,7 @@ class JdbcEventStore(val dataSource: DataSource) : EventStore {
     override fun save(events: EventList, version: Int): IO<EventList> {
         val gson = GsonBuilder().setExclusionStrategies(CustomExclusionStrategy()).create()
         val stmt = dataSource.getConnection().prepareStatement("INSERT INTO events (id, aggregate_id, canonical_name, `values`, `timestamp`, version) VALUES(?,?,?,?,?,?)")
-        events.forEach {
+        events.filter { version == 0 || it.version >= version }.forEach {
             stmt.setString(1, UUID.randomUUID().toString())
             stmt.setString(2, it.aggregateID.toString())
             stmt.setString(3, it.javaClass.canonicalName)

@@ -11,7 +11,7 @@ internal class InMemoryEventStore : EventStore {
     private val eventDB = mutableMapOf<AggregateID, EventList>()
 
     override fun load(aggregateID: AggregateID): IO<EventList> {
-        return IO.invoke { eventDB[aggregateID] ?: emptyList() }
+        return IO.invoke { (eventDB[aggregateID])?.distinct() ?: emptyList() }
     }
 
     override fun save(events: EventList, version: Int): IO<EventList> {
@@ -21,11 +21,10 @@ internal class InMemoryEventStore : EventStore {
 
         events.forEach { event ->
             event.timestamp = ZonedDateTime.now()
-
             eventDB.compute(event.aggregateID) { _, el -> (el ?: emptyList()).plus(event) }
         }
 
-        return IO.invoke { events }
+        return IO.invoke { events.distinct() }
     }
 
 }
