@@ -8,6 +8,7 @@ import com.hasanozgan.komandante.CommandHandler
 import com.hasanozgan.komandante.Event
 import com.hasanozgan.komandante.eventbus.localBusOf
 import com.hasanozgan.komandante.eventhandler.ProjectorEventHandler
+import com.hasanozgan.komandante.eventhandler.SagaEventHandler
 import com.hasanozgan.komandante.eventstore.createExposedEventStore
 import com.hasanozgan.komandante.eventstore.exposed.dao.Events
 import com.hasanozgan.komandante.newAggregateID
@@ -35,12 +36,16 @@ class BankAccountDomainIntegrationTest {
         }
 
         // CQRS Setup
+        val aggregateHandler = AggregateHandler(eventStore, eventBus, BankAccountAggregateFactory())
+        val commandHandler = CommandHandler(aggregateHandler)
+
         val bankAccountProjector = BankAccountProjector()
         val projectorEventHandler = ProjectorEventHandler(bankAccountProjector)
         eventBus.addHandler(projectorEventHandler)
 
-        val aggregateHandler = AggregateHandler(eventStore, eventBus, BankAccountAggregateFactory())
-        val commandHandler = CommandHandler(aggregateHandler)
+        val bankAccountWorkflow = BankAccountWorkflow()
+        val sagaEventHandler = SagaEventHandler(bankAccountWorkflow, commandHandler)
+        eventBus.addHandler(sagaEventHandler)
 
         commandHandler.handle(CreateAccount(accountID, "bob"))
         commandHandler.handle(PerformDeposit(accountID, 10.20))

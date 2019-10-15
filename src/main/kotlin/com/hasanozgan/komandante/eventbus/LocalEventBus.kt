@@ -4,6 +4,7 @@ package com.hasanozgan.komandante.eventbus
 import arrow.effects.IO
 import com.hasanozgan.komandante.*
 import com.hasanozgan.komandante.eventhandler.ProjectorEventHandler
+import com.hasanozgan.komandante.eventhandler.SagaEventHandler
 import io.reactivex.subjects.PublishSubject
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
@@ -81,6 +82,9 @@ class LocalEventBus<T : Event> internal constructor() : EventBus<T> {
         if (eventHandler.handlerType == "projector") {
             val projectorEventHandler = eventHandler as ProjectorEventHandler
             clazzTypeName = (projectorEventHandler.projector.javaClass.genericInterfaces[0] as ParameterizedType).actualTypeArguments[0]
+        } else if (eventHandler.handlerType == "saga") {
+            val sagaEventHandler = eventHandler as SagaEventHandler
+            clazzTypeName = (sagaEventHandler.workflow.javaClass.genericInterfaces[0] as ParameterizedType).actualTypeArguments[0]
         } else {
             clazzTypeName = (eventHandler.javaClass.genericInterfaces[0] as ParameterizedType).actualTypeArguments[0]
         }
