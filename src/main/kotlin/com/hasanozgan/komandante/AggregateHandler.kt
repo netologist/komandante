@@ -36,11 +36,7 @@ class AggregateHandler(private val store: EventStore, private val bus: EventBus<
                     is Success -> Success(aggregate)
                 }
             }).map {
-                it.events.map {
-                    val (event) = bus.publish(it)
-                    event.version = events.indexOf(event) + 1
-                    event
-                }
+                it.events.filter { it.version >= aggregate.version }.forEach { bus.publish(it) }
                 it
             }
         }.handleError {
