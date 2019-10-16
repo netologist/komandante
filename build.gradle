@@ -93,9 +93,10 @@ jacocoTestReport.mustRunAfter test
 check.dependsOn jacocoCodeclimate
 jacocoCodeclimate.mustRunAfter jacocoTestReport
 
+
 task testIntegration(type: Test) {
     jacoco {
-        enabled false
+        enabled true
     }
 
     testClassesDirs = sourceSets.testIntegration.output.classesDirs
@@ -106,7 +107,6 @@ task testIntegration(type: Test) {
 check.dependsOn testIntegration
 
 testIntegration {
-//    useJUnitPlatform()
     testLogging {
         events "PASSED", "FAILED", "SKIPPED" //,"STARTED"
         displayGranularity 1
