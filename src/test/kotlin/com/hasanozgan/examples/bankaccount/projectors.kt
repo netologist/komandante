@@ -1,7 +1,10 @@
 package com.hasanozgan.examples.bankaccount
 
+import arrow.core.None
+import arrow.core.Option
 import com.hasanozgan.examples.bankaccount.BankAccounts.aggregateID
 import com.hasanozgan.examples.bankaccount.BankAccounts.version
+import com.hasanozgan.komandante.Command
 import com.hasanozgan.komandante.DomainError
 import com.hasanozgan.komandante.Event
 import com.hasanozgan.komandante.Projector
@@ -12,7 +15,7 @@ import org.jetbrains.exposed.sql.update
 import org.joda.time.DateTime
 
 class BankAccountProjector : Projector<BankAccountEvent> {
-    override fun <T : Event> project(event: T): DomainError? {
+    override fun <T : Event> project(event: T): Option<Command> {
         transaction {
             val repository = BankAccounts.select { aggregateID.eq(event.aggregateID) }
 
@@ -28,7 +31,7 @@ class BankAccountProjector : Projector<BankAccountEvent> {
                         }
                         commit()
                     } else {
-                        return@transaction DomainError("account is created before")
+                        println( DomainError("account is created before"))
                     }
 
 
@@ -77,9 +80,9 @@ class BankAccountProjector : Projector<BankAccountEvent> {
                             }
 
                 else ->
-                    return@transaction DomainError("Event ${event} is not projected")
+                    println(DomainError("Event ${event} is not projected"))
             }
         }
-        return null
+        return None
     }
 }

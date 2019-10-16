@@ -40,7 +40,7 @@ class BankAccountDomainIntegrationTest {
         val commandHandler = CommandHandler(aggregateHandler)
 
         val bankAccountProjector = BankAccountProjector()
-        val projectorEventHandler = ProjectorEventHandler(bankAccountProjector)
+        val projectorEventHandler = ProjectorEventHandler(bankAccountProjector, commandHandler)
         eventBus.addHandler(projectorEventHandler)
 
         val bankAccountWorkflow = BankAccountWorkflow()
