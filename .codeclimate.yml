@@ -1,0 +1,26 @@
+---
+checks:
+  method-complexity:
+    config:
+      threshold: 15
+  method-lines:
+    config:
+      threshold: 50
+  argument-count:
+    config:
+      threshold: 5
+plugins:
+  checkstyle:
+    enabled: true
+    config:
+      file: "google_checks.xml"
+  sonar-java:
+    enabled: true
+    config:
+      sonar.java.source: 8
+      tests_patterns:
+        - 'src/test/**'
+        - 'src/integrationTest/**'
+        - 'src/dockerTest/**'
+  pmd:
+    enabled: true

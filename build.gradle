@@ -12,6 +12,8 @@ plugins {
 apply plugin: 'idea'
 apply plugin: 'java'
 apply plugin: 'kotlin'
+apply plugin: 'jacoco'
+
 
 repositories {
     // Use jcenter for resolving dependencies.
@@ -64,13 +66,38 @@ sourceSets {
     }
 }
 
+jacocoTestReport {
+    reports {
+        xml.enabled true
+    }
+}
+
 test {
+    jacoco {
+        includes = ['com.hasanozgan.*']
+    }
     testLogging {
         events "PASSED", "FAILED", "SKIPPED" //,"STARTED"
     }
 }
 
+task jacocoCodeclimate(type: Copy) {
+    from 'build/reports/jacoco/test/jacocoTestReport.xml'
+    into './'
+    rename { fileName -> fileName.replace("jacocoTestReport.xml", "jacoco.xml") }
+    filter { line -> line.replaceAll("com/", "src/main/kotlin/com/") }
+}
+
+check.dependsOn jacocoTestReport
+jacocoTestReport.mustRunAfter test
+check.dependsOn jacocoCodeclimate
+jacocoCodeclimate.mustRunAfter jacocoTestReport
+
 task testIntegration(type: Test) {
+    jacoco {
+        enabled false
+    }
+
     testClassesDirs = sourceSets.testIntegration.output.classesDirs
     classpath = sourceSets.testIntegration.runtimeClasspath
     mustRunAfter test
@@ -137,6 +164,10 @@ dependencies {
 
     // GSON json library
     implementation "com.google.code.gson:gson:$gsonVersion"
+
+    implementation "org.slf4j:slf4j-api:1.7.25"
+    implementation "ch.qos.logback:logback-classic:1.2.3"
+    implementation "ch.qos.logback:logback-core:1.2.3"
 
     // Use the Kotlin test library.
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
