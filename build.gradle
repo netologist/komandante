@@ -37,8 +37,8 @@ def gsonVersion = "2.8.5"
 
 // integration test setup starting
 configurations {
-    integrationTestImplementation.extendsFrom testImplementation
-    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+    testIntegrationImplementation.extendsFrom testImplementation
+    testIntegrationRuntimeOnly.extendsFrom testRuntimeOnly
 }
 
 sourceSets {
@@ -48,19 +48,19 @@ sourceSets {
     test {
         output.dir file("out")
     }
-    integrationTest {
+    testIntegration {
         kotlin {
             compileClasspath += main.output + test.output
             runtimeClasspath += main.output + test.output
-            srcDir file('src/integration-test/kotlin')
+            srcDir file('src/test-integration/kotlin')
         }
         java {
             compileClasspath += main.output + test.output
             runtimeClasspath += main.output + test.output
-            srcDir file('src/integration-test/java')
+            srcDir file('src/test-integration/java')
             output.dir file('out')
         }
-        resources.srcDir file('src/integration-test/resources')
+        resources.srcDir file('src/test-integration/resources')
     }
 }
 
@@ -70,15 +70,15 @@ test {
     }
 }
 
-task integrationTest(type: Test) {
-    testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    classpath = sourceSets.integrationTest.runtimeClasspath
+task testIntegration(type: Test) {
+    testClassesDirs = sourceSets.testIntegration.output.classesDirs
+    classpath = sourceSets.testIntegration.runtimeClasspath
     mustRunAfter test
 }
 
-check.dependsOn integrationTest
+check.dependsOn testIntegration
 
-integrationTest {
+testIntegration {
 //    useJUnitPlatform()
     testLogging {
         events "PASSED", "FAILED", "SKIPPED" //,"STARTED"
@@ -89,10 +89,10 @@ integrationTest {
 
 idea {
     module {
-        testSourceDirs += sourceSets.integrationTest.java.srcDirs
-        testSourceDirs += sourceSets.integrationTest.kotlin.srcDirs
-        testResourceDirs += sourceSets.integrationTest.resources.srcDirs
-        scopes.TEST.plus += [configurations.integrationTestCompile]
+        testSourceDirs += sourceSets.testIntegration.java.srcDirs
+        testSourceDirs += sourceSets.testIntegration.kotlin.srcDirs
+        testResourceDirs += sourceSets.testIntegration.resources.srcDirs
+        scopes.TEST.plus += [configurations.testIntegrationCompile]
     }
 }
 // integration test setup finished
@@ -150,5 +150,5 @@ dependencies {
     // Mockk Version
     testImplementation "io.mockk:mockk:$mockkVersion"
 
-    integrationTestImplementation "com.h2database:h2:$h2Version"
+    testIntegrationImplementation "com.h2database:h2:$h2Version"
 }
