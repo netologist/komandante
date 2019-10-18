@@ -1,33 +1,17 @@
-environment-defaults: &environment-defaults
+build-default: &build-default
   docker:
     - image: circleci/openjdk:8-jdk-browsers # Primary container -> all steps run on this
   environment:
+#    <<: *environment-defaults
     GRADLE_OPTS: "-Xms1024m -Xmx2048m -Dorg.gradle.daemon=false"
     JVM_OPTS: "-Xms1024m -Xmx2048m"
     _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
   working_directory: ~/komandante
 
-commands:
-  publish_artifacts:
-    description: Publish Gradle project artifacts signed by provided GPG key
-    parameters:
-      base64_key:
-        default: SIGNING_PGP_BASE64
-        description: Variable that contains base64 encoded GPG file used for signing
-        type: env_var_name
-      deploy_task:
-        default: sonaTypeUpload
-        description: Gradle task to run to build, sign and upload artifacts
-        type: string
-      gpg_key_name:
-        default: PGP_KEY
-        description: Gpg key name to use for signing
-        type: env_var_name
-
 version: 2
 jobs:
   build-test:
-    <<: *environment-defaults
+    <<: *build-default
     steps:
       - checkout
       - restore_cache:

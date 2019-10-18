@@ -1,12 +1,26 @@
-
 def SONATYPE_USERNAME = System.getenv('SONATYPE_USERNAME')
 def SONATYPE_PASSWORD = System.getenv('SONATYPE_PASSWORD')
+
+def signinKeyID = System.getenv('SIGNING_KEYID')
+def signinPassword = System.getenv('SIGNING_PASSWORD')
+def signingSecretKeyRingFile = {
+    def f = File.createTempFile(UUID.randomUUID().toString(), null);
+    FileOutputStream fos = new FileOutputStream(f)
+    fos.write(Base64.decoder.decode(System.getenv('SIGNING_SECRETKEYRINGFILE')))
+    return f.absolutePath
+}
 
 task sonaTypeUpload(type: Upload) {
     configuration = configurations.archives
     uploadDescriptor = true
     repositories {
         if (SONATYPE_USERNAME != null) {
+            allprojects {
+                ext."signing.keyId" = signinKeyID
+                ext."signing.secretKeyRingFile" = signingSecretKeyRingFile()
+                ext."signing.password" = signinPassword
+            }
+
             mavenDeployer {
                 beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
                 repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2') {
@@ -33,10 +47,15 @@ task sonaTypeUpload(type: Upload) {
                             url 'https://hasanozgan.com'
                         }
                     }
+                    scm {
+                        connection 'scm:git:https://github.com/hasanozgan/komandante.git'
+                        developerConnection 'scm:git:https://github.com/hasanozgan/komandante.git'
+                        url 'https://github.com/hasanozgan/komandante'
+                    }
                     licenses {
                         license {
-                            name 'The Apache License, Version 2.0'
-                            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                            name 'The MIT License'
+                            url 'https://opensource.org/licenses/MIT'
                         }
                     }
                 }
