@@ -41,3 +41,16 @@ jobs:
           root: ~/
           paths:
             - komandante/*
+
+workflows:
+  version: 2
+
+  commit-pipeline:
+    jobs:
+      - build-test:
+          context: komandante
+
+  release-pipeline:
+    jobs:
+      - build-test:
+          context: komandante
