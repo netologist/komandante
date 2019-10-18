@@ -30,13 +30,12 @@ jobs:
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
             chmod +x ./cc-test-reporter
       - run: ./cc-test-reporter before-build
-      - run: ./gradlew test --info --stacktrace
+      - run: ./gradlew test testIntegration --info --stacktrace
       - run:
           name: Upload code jacoco coverage as specified in build.gradle
           command: |
             JACOCO_SOURCE_PATH=src/main/kotlin ./cc-test-reporter format-coverage build/reports/jacoco/test/jacocoTestReport.xml --input-type jacoco
             ./cc-test-reporter upload-coverage
-            # ^^^ Workaround for cc-test-reporter bug with 'after-build'
       - persist_to_workspace:
           root: ~/
           paths:
