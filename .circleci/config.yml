@@ -47,8 +47,8 @@ workflows:
 
   commit-pipeline:
     jobs:
-      - build-test:
+      - build-test
 
   release-pipeline:
     jobs:
-      - build-test:
+      - build-test
