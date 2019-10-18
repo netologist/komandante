@@ -36,9 +36,13 @@ jobs:
           command: |
             JACOCO_SOURCE_PATH=src/main/kotlin ./cc-test-reporter format-coverage build/reports/jacoco/test/jacocoTestReport.xml --input-type jacoco
             ./cc-test-reporter upload-coverage
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: komandante-{{ checksum "build.gradle" }}
       - run:
           name: deploy maven repo
-          command: ./gradlew clean shadowJar sonaTypeUpload
+          command: ./gradlew clean sonaTypeUpload
       - persist_to_workspace:
           root: ~/
           paths:
