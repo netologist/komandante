@@ -34,7 +34,7 @@ jobs:
       - run:
           name: Upload code jacoco coverage as specified in build.gradle
           command: |
-            JACOCO_SOURCE_PATH=src/main/java ./cc-test-reporter format-coverage build/reports/jacoco/test/jacocoTestReport.xml --input-type jacoco
+            JACOCO_SOURCE_PATH=src/main/kotlin ./cc-test-reporter format-coverage build/reports/jacoco/test/jacocoTestReport.xml --input-type jacoco
             ./cc-test-reporter upload-coverage
             # ^^^ Workaround for cc-test-reporter bug with 'after-build'
       - persist_to_workspace:
@@ -44,10 +44,6 @@ jobs:
 
 workflows:
   version: 2
-
-  commit-pipeline:
-    jobs:
-      - build-test
 
   release-pipeline:
     jobs:
