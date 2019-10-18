@@ -42,7 +42,7 @@ jobs:
           key: komandante-{{ checksum "build.gradle" }}
       - run:
           name: deploy maven repo
-          command: ./gradlew clean sonaTypeUpload
+          command: ./gradlew clean sonaTypeUpload  --info --stacktrace
       - persist_to_workspace:
           root: ~/
           paths:
