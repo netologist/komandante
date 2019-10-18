@@ -1,0 +1,46 @@
+
+def SONATYPE_USERNAME = System.getenv('SONATYPE_USERNAME')
+def SONATYPE_PASSWORD = System.getenv('SONATYPE_PASSWORD')
+
+task sonaTypeUpload(type: Upload) {
+    configuration = configurations.archives
+    uploadDescriptor = true
+    repositories {
+        if (SONATYPE_USERNAME != null) {
+            mavenDeployer {
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+                repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2') {
+                    authentication(userName: SONATYPE_USERNAME, password: SONATYPE_PASSWORD)
+                }
+                snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots') {
+                    authentication(userName: SONATYPE_USERNAME, password: SONATYPE_PASSWORD)
+                }
+                pom.project {
+                    name name
+                    description description
+                    packaging 'jar'
+                    inceptionYear '2019'
+                    url "https://github.com/hasanozgan/komandante"
+                    organization {
+                        name 'netology'
+                        url 'http://netology.org'
+                    }
+                    developers {
+                        developer {
+                            id 'hasanozgan'
+                            name 'Hasan Ozgan'
+                            email 'hasan@ozgan.net'
+                            url 'https://hasanozgan.com'
+                        }
+                    }
+                    licenses {
+                        license {
+                            name 'The Apache License, Version 2.0'
+                            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
