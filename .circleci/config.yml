@@ -23,7 +23,7 @@ jobs:
           paths:
             - ~/.gradle
           key: komandante-{{ checksum "build.gradle" }}
-      - run: ./gradlew bootJar
+      - run: ./gradlew shadowJar
       - run:
           name:  Download cc-test-reporter
           command: |

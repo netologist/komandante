@@ -7,6 +7,9 @@
 plugins {
     // Apply the Kotlin JVM plugin to add support for Kotlin on the JVM.
     id 'org.jetbrains.kotlin.jvm' version '1.3.41'
+
+    // shadowJar
+    id 'com.github.johnrengelman.shadow' version '5.0.0'
 }
 
 apply plugin: 'idea'
@@ -14,6 +17,21 @@ apply plugin: 'java'
 apply plugin: 'kotlin'
 apply plugin: 'jacoco'
 
+// versions
+def javaVersion = JavaVersion.VERSION_1_8
+def kotlinVersion = "1.3.41"
+def kotlinXCoroutinesVersion = "1.3.0"
+def arrowVersion = "0.9.0"
+def rxjavaVersion = "2.2.0"
+def rxKotlinVersion = "2.2.0"
+def hamcrestVersion = "2.0.0.0"
+def h2Version = "1.4.199"
+def hikariVersion = "3.3.1"
+def mockkVersion = "1.9.3"
+def exposedVersion = "0.16.1"
+def gsonVersion = "2.8.5"
+def slf4jVersion = "1.7.25"
+def logbackVersion = "1.2.3"
 
 repositories {
     // Use jcenter for resolving dependencies.
@@ -80,6 +98,10 @@ testIntegration {
     }
 }
 
+shadowJar {
+    mergeServiceFiles()
+}
+
 idea {
     module {
         testSourceDirs += sourceSets.testIntegration.java.srcDirs
@@ -102,22 +124,6 @@ configurations.all {
 
 
 dependencies {
-// versions
-    def javaVersion = JavaVersion.VERSION_1_8
-    def kotlinVersion = "1.3.41"
-    def kotlinXCoroutinesVersion = "1.3.0"
-    def arrowVersion = "0.9.0"
-    def rxjavaVersion = "2.2.0"
-    def rxKotlinVersion = "2.2.0"
-    def hamcrestVersion = "2.0.0.0"
-    def h2Version = "1.4.199"
-    def hikariVersion = "3.3.1"
-    def mockkVersion = "1.9.3"
-    def exposedVersion = "0.16.1"
-    def gsonVersion = "2.8.5"
-    def slf4jVersion = "1.7.25"
-    def logbackVersion = "1.2.3"
-
     // Use the Kotlin JDK 8 standard library.
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
 
