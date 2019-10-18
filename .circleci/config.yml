@@ -38,7 +38,7 @@ jobs:
             ./cc-test-reporter upload-coverage
       - run:
           name: deploy maven repo
-          command: ./gradlew sonaTypeUpload
+          command: ./gradlew clean shadowJar sonaTypeUpload
       - persist_to_workspace:
           root: ~/
           paths:
