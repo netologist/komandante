@@ -1,0 +1,43 @@
+build-default: &build-default
+  docker:
+    - image: circleci/openjdk:8-jdk-browsers # Primary container -> all steps run on this
+  environment:
+    GRADLE_OPTS: "-Xms1024m -Xmx2048m -Dorg.gradle.daemon=false"
+    JVM_OPTS: "-Xms1024m -Xmx2048m"
+    _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
+    CC_TEST_REPORTER_ID: "a3803a3caf5625d135269d1029fabf29283ffbbfff9932a95e5ccd328fbe2a12"
+  working_directory: ~/komandante
+
+version: 2
+jobs:
+  build-test:
+    <<: *build-default
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - komandante-{{ checksum "build.gradle" }}
+            - komandante-
+      - run: ./gradlew clean dependencies
+      - save_cache:
+          paths:
+            - ~/.gradle
+          key: komandante-{{ checksum "build.gradle" }}
+      - run: ./gradlew bootJar
+      - run:
+          name:  Download cc-test-reporter
+          command: |
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+            chmod +x ./cc-test-reporter
+      - run: ./cc-test-reporter before-build
+      - run: ./gradlew test --info --stacktrace
+      - run:
+          name: Upload code jacoco coverage as specified in build.gradle
+          command: |
+            JACOCO_SOURCE_PATH=src/main/java ./cc-test-reporter format-coverage build/reports/jacoco/test/jacocoTestReport.xml --input-type jacoco
+            ./cc-test-reporter upload-coverage
+            # ^^^ Workaround for cc-test-reporter bug with 'after-build'
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - komandante/*
