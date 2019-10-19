@@ -24,6 +24,10 @@ apply plugin: 'jacoco'
 apply plugin: 'maven'
 apply plugin: 'signing'
 
+jacoco {
+    toolVersion = "0.8.4"
+}
+
 // versions
 def javaVersion = JavaVersion.VERSION_1_8
 def kotlinVersion = "1.3.41"
@@ -97,6 +101,8 @@ testIntegration {
     }
 }
 
+testIntegration.mustRunAfter test
+
 shadowJar {
     mergeServiceFiles()
 }
@@ -110,6 +116,25 @@ idea {
     }
 }
 // integration test setup finished
+
+def allTestCoverageFile = "$buildDir/jacoco/allTestCoverage.exec"
+
+task jacocoMergeTest(type: JacocoMerge) {
+    destinationFile = file(allTestCoverageFile)
+    executionData = project.fileTree(dir: '.', include: '**/build/jacoco/test*.exec')
+}
+
+task jacocoFullCoverageReport(type: JacocoReport) {
+    additionalSourceDirs = files(rootProject.sourceSets.main.allSource.srcDirs)
+    sourceDirectories = files(sourceSets.main.allSource.srcDirs)
+    classDirectories = files(sourceSets.main.output)
+    executionData = fileTree(dir: '.', include: '**/build/jacoco/test*.exec')
+
+    reports {
+        xml.enabled = true
+        xml.destination = file("${buildDir}/reports/jacoco/test/coverage.xml")
+    }
+}
 
 // dependency kotlin hack: fixed different kotlin-reflect versions on dependencies
 configurations.all {
@@ -171,4 +196,3 @@ dependencies {
 }
 
 apply from: 'publish.gradle'
-apply from: 'jacoco.gradle'
