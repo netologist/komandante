@@ -1,6 +1,5 @@
 def SONATYPE_USERNAME = System.getenv('SONATYPE_USERNAME')
 def SONATYPE_PASSWORD = System.getenv('SONATYPE_PASSWORD')
-def BUILD_NUMBER = System.getenv('CIRCLE_BUILD_NUM')
 
 def signinKeyID = System.getenv('SIGNING_KEYID')
 def signinPassword = System.getenv('SIGNING_PASSWORD')

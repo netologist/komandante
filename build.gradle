@@ -12,8 +12,10 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '5.0.0'
 }
 
+def appVersion = "0.1"
 group = 'com.hasanozgan'
-version = "0.1.$BUILD_NUMBER"
+def BUILD_NUMBER = System.getenv('CIRCLE_BUILD_NUM')
+version = "$appVersion.$BUILD_NUMBER"
 
 apply plugin: 'idea'
 apply plugin: 'java'
