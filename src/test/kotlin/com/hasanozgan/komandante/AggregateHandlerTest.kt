@@ -54,7 +54,7 @@ class AggregateHandlerTest {
         val events = listOf<Event>(
                 AccountCreated(accountID, "totoro"),
                 DepositPerformed(accountID, 20.0)
-        ).mapIndexed { i, e -> e.version=i+1; e }
+        ).mapIndexed { i, e -> e.version = i + 1; e }
         every { mockEventStore.save(events, version) } returns IO.invoke { events }
         for (event in events) {
             every { mockEventBus.publish(event) } returns IO.invoke { event }

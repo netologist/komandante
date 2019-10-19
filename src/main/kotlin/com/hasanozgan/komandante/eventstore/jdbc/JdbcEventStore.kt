@@ -7,6 +7,7 @@ import com.hasanozgan.komandante.Event
 import com.hasanozgan.komandante.EventList
 import com.hasanozgan.komandante.EventStore
 import com.hasanozgan.komandante.eventstore.exposed.CustomExclusionStrategy
+import com.hasanozgan.komandante.eventstore.forceUpdateAggregateID
 import org.joda.time.DateTime
 import java.util.*
 import javax.sql.DataSource
@@ -28,13 +29,9 @@ class JdbcEventStore(val dataSource: DataSource) : EventStore {
             val eventClazz = Class.forName(canonicalName)
 
             val event = gson.fromJson(values, eventClazz) as (Event)
-            event.javaClass.superclass.declaredFields.filter { it.name.equals("aggregateID") }.forEach {
-                it.setAccessible(true);
-                it.set(event, aggregateID)
-            }
             event.version = rs.getInt("version")
             event.timestamp = timestamp.toGregorianCalendar().toZonedDateTime()
-
+            forceUpdateAggregateID(event, aggregateID)
             result.add(event)
         }
         stmt.close()

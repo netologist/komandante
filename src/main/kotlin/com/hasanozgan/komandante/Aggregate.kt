@@ -10,8 +10,6 @@ fun newAggregateID(): AggregateID {
     return AggregateID.randomUUID()
 }
 
-typealias AggregateType = String
-
 interface Aggregate {
     var id: AggregateID
     var events: MutableList<Event>

@@ -34,7 +34,7 @@ class BankAccountProjector : Projector<BankAccountEvent> {
                         }
                         commit()
                     } else {
-                        println( DomainError("account is created before"))
+                        println(DomainError("account is created before"))
                     }
 
 
