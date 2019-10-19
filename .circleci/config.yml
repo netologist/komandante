@@ -2,7 +2,8 @@ build-default: &build-default
   docker:
     - image: circleci/openjdk:8-jdk-browsers # Primary container -> all steps run on this
   environment:
-#    <<: *environment-defaults
+    CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
+    CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
     GRADLE_OPTS: "-Xms1024m -Xmx2048m -Dorg.gradle.daemon=false"
     JVM_OPTS: "-Xms1024m -Xmx2048m"
     _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
@@ -21,7 +22,15 @@ jobs:
       - run: ./gradlew clean dependencies
       - save_cache:
           paths:
+            - vendor/bundle
+            - ~/virtualenvs
+            - ~/.m2
+            - ~/.ivy2
+            - ~/.bundle
             - ~/.gradle
+            - ~/.cache/bower
+            - ~/.sbt
+            - ~/.ivy2
           key: komandante-{{ checksum "build.gradle" }}
       - run: ./gradlew shadowJar
       - run:
@@ -36,17 +45,23 @@ jobs:
           command: |
             JACOCO_SOURCE_PATH=src/main/kotlin ./cc-test-reporter format-coverage build/reports/jacoco/test/jacocoTestReport.xml --input-type jacoco
             ./cc-test-reporter upload-coverage
-      - save_cache:
-          paths:
-            - ~/.m2
           key: komandante-{{ checksum "build.gradle" }}
       - run:
           name: deploy maven repo
           command: ./gradlew clean sonaTypeUpload  --info --stacktrace
+          key: komandante-{{ checksum "build.gradle" }}
       - persist_to_workspace:
           root: ~/
           paths:
             - komandante/*
+      - store_test_results:
+          path: /tmp/circleci-test-results
+      - store_artifacts:
+          path: /tmp/circleci-artifacts
+      - store_artifacts:
+          path: target/universal
+      - store_artifacts:
+          path: /tmp/circleci-test-results
 
 workflows:
   version: 2
