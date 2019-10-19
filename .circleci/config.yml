@@ -39,7 +39,9 @@ jobs:
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
             chmod +x ./cc-test-reporter
       - run: ./cc-test-reporter before-build
-      - run: ./gradlew clean test testIntegration jacocoFullCoverageReport --info --stacktrace
+      - run: ./gradlew test --info --stacktrace
+      - run: ./gradlew testIntegration --info --stacktrace
+      - run: ./gradlew jacocoFullCoverageReport --info --stacktrace
       - run:
           name: Upload code jacoco coverage as specified in build.gradle
           command: |
