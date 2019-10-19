@@ -101,8 +101,6 @@ testIntegration {
     }
 }
 
-testIntegration.mustRunAfter test
-
 shadowJar {
     mergeServiceFiles()
 }
