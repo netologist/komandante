@@ -1,0 +1,26 @@
+def allTestCoverageFile = "$buildDir/jacoco/allTestCoverage.exec"
+
+task jacocoMergeTest(type: JacocoMerge) {
+    destinationFile = file(allTestCoverageFile)
+    executionData = project.fileTree(dir: '.', include: '**/build/jacoco/test*.exec')
+}
+
+task jacocoMerge(dependsOn: ['jacocoMergeTest']) {}
+
+jacocoTestReport {
+    dependsOn(jacocoMergeTest)
+    executionData = files(jacocoMergeTest.destinationFile)
+
+    reports {
+        xml.enabled = true
+        csv.enabled = false
+        html.destination file("${buildDir}/reports/tests/jacoco")
+    }
+
+    afterEvaluate {
+        classDirectories = files(project.fileTree(dir: "$buildDir/classes/kotlin/main", exclude: [
+                '**/dtos/**',
+                '**/config/**'
+        ]))
+    }
+}
