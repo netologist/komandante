@@ -12,8 +12,8 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '5.0.0'
 }
 
-group = 'com.hasanozgan.komandante'
-version = '0.0.1'
+group = 'com.hasanozgan'
+version = "0.1.$BUILD_NUMBER"
 
 apply plugin: 'idea'
 apply plugin: 'java'

@@ -1,5 +1,6 @@
 def SONATYPE_USERNAME = System.getenv('SONATYPE_USERNAME')
 def SONATYPE_PASSWORD = System.getenv('SONATYPE_PASSWORD')
+def BUILD_NUMBER = System.getenv('CIRCLE_BUILD_NUM')
 
 def signinKeyID = System.getenv('SIGNING_KEYID')
 def signinPassword = System.getenv('SIGNING_PASSWORD')
@@ -11,52 +12,53 @@ def signingSecretKeyRingFile = {
 }
 
 task sonaTypeUpload(type: Upload) {
+    if (SONATYPE_USERNAME == null || BUILD_NUMBER == null) {
+        return
+    }
     configuration = configurations.archives
     uploadDescriptor = true
     repositories {
-        if (SONATYPE_USERNAME != null) {
-            allprojects {
-                ext."signing.keyId" = signinKeyID
-                ext."signing.secretKeyRingFile" = signingSecretKeyRingFile()
-                ext."signing.password" = signinPassword
-            }
+        allprojects {
+            ext."signing.keyId" = signinKeyID
+            ext."signing.secretKeyRingFile" = signingSecretKeyRingFile()
+            ext."signing.password" = signinPassword
+        }
 
-            mavenDeployer {
-                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-                repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2') {
-                    authentication(userName: SONATYPE_USERNAME, password: SONATYPE_PASSWORD)
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+            repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2') {
+                authentication(userName: SONATYPE_USERNAME, password: SONATYPE_PASSWORD)
+            }
+            snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots') {
+                authentication(userName: SONATYPE_USERNAME, password: SONATYPE_PASSWORD)
+            }
+            pom.project {
+                name name
+                description description
+                packaging 'jar'
+                inceptionYear '2019'
+                url "https://github.com/hasanozgan/komandante"
+                organization {
+                    name 'netology'
+                    url 'http://netology.org'
                 }
-                snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots') {
-                    authentication(userName: SONATYPE_USERNAME, password: SONATYPE_PASSWORD)
+                developers {
+                    developer {
+                        id 'hasanozgan'
+                        name 'Hasan Ozgan'
+                        email 'hasan@ozgan.net'
+                        url 'https://hasanozgan.com'
+                    }
                 }
-                pom.project {
-                    name name
-                    description description
-                    packaging 'jar'
-                    inceptionYear '2019'
-                    url "https://github.com/hasanozgan/komandante"
-                    organization {
-                        name 'netology'
-                        url 'http://netology.org'
-                    }
-                    developers {
-                        developer {
-                            id 'hasanozgan'
-                            name 'Hasan Ozgan'
-                            email 'hasan@ozgan.net'
-                            url 'https://hasanozgan.com'
-                        }
-                    }
-                    scm {
-                        connection 'scm:git:https://github.com/hasanozgan/komandante.git'
-                        developerConnection 'scm:git:https://github.com/hasanozgan/komandante.git'
-                        url 'https://github.com/hasanozgan/komandante'
-                    }
-                    licenses {
-                        license {
-                            name 'The MIT License'
-                            url 'https://opensource.org/licenses/MIT'
-                        }
+                scm {
+                    connection 'scm:git:https://github.com/hasanozgan/komandante.git'
+                    developerConnection 'scm:git:https://github.com/hasanozgan/komandante.git'
+                    url 'https://github.com/hasanozgan/komandante'
+                }
+                licenses {
+                    license {
+                        name 'The MIT License'
+                        url 'https://opensource.org/licenses/MIT'
                     }
                 }
             }
