@@ -43,7 +43,7 @@ jobs:
       - run:
           name: Upload code jacoco coverage as specified in build.gradle
           command: |
-            JACOCO_SOURCE_PATH=src/main/kotlin ./cc-test-reporter format-coverage build/reports/tests/jacoco/test/coverage.xml --input-type jacoco
+            JACOCO_SOURCE_PATH=src/main/kotlin ./cc-test-reporter format-coverage build/reports/jacoco/test/coverage.xml --input-type jacoco
             ./cc-test-reporter upload-coverage
           key: komandante-{{ checksum "build.gradle" }}
       - run:
