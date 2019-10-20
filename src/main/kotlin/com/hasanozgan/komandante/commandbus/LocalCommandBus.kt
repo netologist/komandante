@@ -2,78 +2,26 @@ package com.hasanozgan.komandante.commandbus
 
 import arrow.effects.IO
 import com.hasanozgan.komandante.*
-import io.reactivex.subjects.PublishSubject
-import kotlin.reflect.jvm.jvmErasure
-import kotlin.reflect.jvm.reflect
+import com.hasanozgan.komandante.messagebus.DefaultErrorHandler
 
-fun localCommandBus(): CommandBus = LocalCommandBus()
+fun localCommandBus(messageBus: MessageBus): CommandBus = LocalCommandBus(messageBus)
 
-@Suppress("UNCHECKED_CAST")
-class LocalCommandBus : CommandBus {
-
-    private val publisher = PublishSubject.create<Command>()
-
+class LocalCommandBus(val messageBus: MessageBus) : CommandBus {
     override fun publish(command: Command): IO<Command> {
-        try {
-            publisher.onNext(command)
-            return IO.invoke { command }
-        } catch (t: Throwable) {
-            publisher.onError(t) // this sample for kafka bus
-            return IO.raiseError(t)
-        }
+        return messageBus.publish(command)
     }
 
-    override fun subscribe(commandListener: CommandListener<Command>) {
-        publisher.ofType(Command::class.java).subscribe {
-            commandListener(it)
-        }
+    override fun <T : Command> subscribe(messageListener: MessageListener<in T>) {
+        messageBus.subscribeOf<T>(messageListener)
     }
 
-    override fun subscribe(commandListener: CommandListener<Command>, onError: CommandHandlerError) {
-        publisher.ofType(getCommandListenerClassTypeName(commandListener))
-                .subscribe({ commandListener(it as Command) }, { onError(it) })
+    override fun addHandler(commandHandler: CommandHandler<out Command>) {
+        this.addHandler(commandHandler, DefaultErrorHandler)
     }
 
-    override fun <T : Command> subscribeOf(commandListener: CommandListener<in T>) {
-        publisher.ofType(getCommandListenerClassTypeName(commandListener)).subscribe { commandListener(it as T) }
+    override fun addHandler(commandHandler: CommandHandler<out Command>, onError: ErrorHandler) {
+        messageBus.subscribe(Command::class.java, {
+            commandHandler.handle(it as Command)
+        }, { onError(it) })
     }
-
-    override fun <T : Command> subscribeOf(commandListener: CommandListener<in T>, onError: CommandHandlerError) {
-        publisher.ofType(getCommandListenerClassTypeName(commandListener))
-                .subscribe({ commandListener(it as T) }, { onError(it) })
-    }
-
-    override fun addHandler(aggregateHandler: AggregateHandler) {
-        publisher.ofType(Command::class.java).subscribe {
-            CommandHandler(aggregateHandler).handle(it)
-        }
-    }
-
-    override fun addHandler(aggregateHandler: AggregateHandler, onError: CommandHandlerError) {
-        publisher.ofType(Command::class.java).subscribe({
-            CommandHandler(aggregateHandler).handle(it)
-        }, {
-            onError(it)
-        })
-    }
-
-    override fun <T : Command> addHandler(aggregateHandler: AggregateHandler, baseCommandClass: Class<T>, onError: CommandHandlerError) {
-        publisher.ofType(baseCommandClass).subscribe({
-            CommandHandler(aggregateHandler).handle(it)
-        }, {
-            onError(it)
-        })
-    }
-
-    override fun <T : Command> addHandler(aggregateHandler: AggregateHandler, baseCommandClass: Class<T>) {
-        publisher.ofType(baseCommandClass).subscribe {
-            CommandHandler(aggregateHandler).handle(it)
-        }
-    }
-
-    private fun <T> getCommandListenerClassTypeName(commandListener: CommandListener<T>): Class<out Any> {
-        val clazzType = commandListener.reflect()!!.parameters[0].type.jvmErasure.java
-        return clazzType
-    }
-
 }

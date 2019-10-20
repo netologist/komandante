@@ -4,6 +4,7 @@ import arrow.effects.fix
 import com.hasanozgan.examples.bankaccount.BankAccounts.balance
 import com.hasanozgan.examples.bankaccount.BankAccounts.owner
 import com.hasanozgan.komandante.AggregateHandler
+import com.hasanozgan.komandante.CommandHandler
 import com.hasanozgan.komandante.Event
 import com.hasanozgan.komandante.commandbus.localCommandBus
 import com.hasanozgan.komandante.eventbus.localEventBus
@@ -11,6 +12,7 @@ import com.hasanozgan.komandante.eventhandler.ProjectorEventHandler
 import com.hasanozgan.komandante.eventhandler.SagaEventHandler
 import com.hasanozgan.komandante.eventstore.createExposedEventStore
 import com.hasanozgan.komandante.eventstore.exposed.dao.Events
+import com.hasanozgan.komandante.messagebus.localMessageBus
 import com.hasanozgan.komandante.newAggregateID
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual
@@ -24,8 +26,9 @@ import kotlin.test.Test
 class BankAccountDomainIntegrationTest {
     val accountID = newAggregateID()
     val eventStore = createExposedEventStore()
-    val eventBus = localEventBus()
-    val commandBus = localCommandBus()
+    val messageBus = localMessageBus()
+    val eventBus = localEventBus(messageBus)
+    val commandBus = localCommandBus(messageBus)
 
     @BeforeTest
     fun prepare() {
@@ -38,8 +41,9 @@ class BankAccountDomainIntegrationTest {
 
         // CQRS Setup
         val bankAccountAggregateHandler = AggregateHandler(eventStore, eventBus, BankAccountAggregateFactory())
-        commandBus.addHandler(bankAccountAggregateHandler, BankAccountCommand::class.java)
-        commandBus.subscribeOf<NotificationCommand> {
+        val bankAccountCommandHandler = CommandHandler<BankAccountCommand>(bankAccountAggregateHandler)
+        commandBus.addHandler(bankAccountCommandHandler)
+        commandBus.subscribe<NotificationCommand> {
             println("SAGA COMMAND: ${it}")
         }
 

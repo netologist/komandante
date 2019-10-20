@@ -4,68 +4,29 @@ import arrow.effects.IO
 import com.hasanozgan.komandante.*
 import com.hasanozgan.komandante.eventhandler.ProjectorEventHandler
 import com.hasanozgan.komandante.eventhandler.SagaEventHandler
-import io.reactivex.subjects.PublishSubject
+import com.hasanozgan.komandante.messagebus.DefaultErrorHandler
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
-import kotlin.reflect.jvm.jvmErasure
-import kotlin.reflect.jvm.reflect
 
-fun localEventBus(): EventBus = LocalEventBus()
+fun localEventBus(messageBus: MessageBus): EventBus = LocalEventBus(messageBus)
 
-@Suppress("UNCHECKED_CAST")
-class LocalEventBus internal constructor() : EventBus {
-
-    private val publisher = PublishSubject.create<Event>()
-
-    override fun <T : Event> publish(event: T): IO<T> {
-        try {
-            publisher.onNext(event)
-            return IO.invoke { event }
-        } catch (t: Throwable) {
-            publisher.onError(t) // this sample for kafka bus
-            return IO.raiseError(t)
-        }
+class LocalEventBus internal constructor(val messageBus: MessageBus) : EventBus {
+    override fun publish(message: Event): IO<Event> {
+        return messageBus.publish(message)
     }
 
-    override fun subscribe(eventListener: EventListener<Event>) {
-        handleEventListener(eventListener)
-    }
-
-    override fun subscribe(eventListener: EventListener<Event>, onError: EventHandlerError) {
-        handleEventListenerWithError(eventListener, onError)
-    }
-
-    override fun <T : Event> subscribeOf(eventListener: EventListener<in T>) {
-        handleEventListener(eventListener)
-    }
-
-    override fun <T : Event> subscribeOf(eventListener: EventListener<in T>, onError: EventHandlerError) {
-        handleEventListenerWithError(eventListener, onError)
+    override fun <T : Event> subscribe(messageListener: MessageListener<in T>) {
+        messageBus.subscribeOf<T>(messageListener)
     }
 
     override fun addHandler(eventHandler: EventHandler<out Event>) {
-        publisher.ofType(getEventHandlerClassTypeName(eventHandler)).subscribe {
-            eventHandler.handle(it as Event)
-        }
+        addHandler(eventHandler, DefaultErrorHandler)
     }
 
-    override fun addHandler(eventHandler: EventHandler<out Event>, onError: EventHandlerError) {
-        publisher.ofType(getEventHandlerClassTypeName(eventHandler)).subscribe({
+    override fun addHandler(eventHandler: EventHandler<out Event>, onError: ErrorHandler) {
+        messageBus.subscribe(getEventHandlerClassTypeName(eventHandler), {
             eventHandler.handle(it as Event)
         }, { onError(it) })
-    }
-
-    private fun <T> getEventListenerClassTypeName(eventListener: EventListener<T>): Class<out Any> {
-        val clazzType = eventListener.reflect()!!.parameters[0].type.jvmErasure.java
-        return clazzType
-    }
-
-    private fun <T> handleEventListener(eventListener: EventListener<T>) {
-        publisher.ofType(getEventListenerClassTypeName(eventListener)).subscribe { eventListener(it as T) }
-    }
-
-    private fun <T> handleEventListenerWithError(eventListener: EventListener<T>, onError: (error: Throwable) -> Unit) {
-        publisher.ofType(getEventListenerClassTypeName(eventListener)).subscribe({ eventListener(it as T) }, { onError(it) })
     }
 
     private fun getEventHandlerClassTypeName(eventHandler: EventHandler<out Event>): Class<*> {

@@ -33,7 +33,7 @@ class CommandHandlerTest {
 
         val aggregateFactory = BankAccountAggregateFactory()
         val aggregateHandler = AggregateHandler(mockEventStore, mockEventBus, aggregateFactory)
-        val commandHandler = CommandHandler(aggregateHandler)
+        val commandHandler = CommandHandler<BankAccountCommand>(aggregateHandler)
         val maybeEvent = commandHandler.handle(PerformDeposit(accountID, 15.20))
 
         assertTrue(maybeEvent.isSuccess())
@@ -55,7 +55,7 @@ class CommandHandlerTest {
 
         val aggregateFactory = BankAccountAggregateFactory()
         val aggregateHandler = AggregateHandler(mockEventStore, mockEventBus, aggregateFactory)
-        val commandHandler = CommandHandler(aggregateHandler)
+        val commandHandler = CommandHandler<BankAccountCommand>(aggregateHandler)
         val maybeEvent = commandHandler.handle(PerformWithdrawal(accountID, 20.10))
 
         assertTrue(maybeEvent.isFailure())
@@ -71,7 +71,7 @@ class CommandHandlerTest {
 
         val aggregateFactory = BankAccountAggregateFactory()
         val aggregateHandler = AggregateHandler(mockEventStore, mockEventBus, aggregateFactory)
-        val commandHandler = CommandHandler(aggregateHandler)
+        val commandHandler = CommandHandler<BankAccountCommand>(aggregateHandler)
         val maybeEvent = commandHandler.handle(SendMessage("some command message"))
 
         assertTrue(maybeEvent.isFailure())

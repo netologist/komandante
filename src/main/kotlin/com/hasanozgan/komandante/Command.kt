@@ -1,5 +1,5 @@
 package com.hasanozgan.komandante
 
-abstract class Command() {
+abstract class Command() : Message {
     abstract val aggregateID: AggregateID
 }

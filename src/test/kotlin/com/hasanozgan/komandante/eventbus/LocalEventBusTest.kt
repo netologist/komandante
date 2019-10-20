@@ -3,46 +3,48 @@ package com.hasanozgan.komandante.eventbus
 import com.hasanozgan.examples.bankaccount.MessageSent
 import com.hasanozgan.examples.bankaccount.NotificationEvent
 import com.hasanozgan.komandante.*
+import com.hasanozgan.komandante.messagebus.localMessageBus
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual
 import org.junit.BeforeClass
-import kotlin.test.Test
+import org.junit.Test
 
 sealed class UserEvent(override val aggregateID: AggregateID) : Event()
 
-data class AddUser(val userID: AggregateID) : UserEvent(userID)
-data class RemoveUser(val userID: AggregateID) : UserEvent(userID)
-data class ChangeUserAddress(val userID: AggregateID) : UserEvent(userID)
-data class AnotherEvent(override val aggregateID: AggregateID) : Event()
+data class UserAdded(val userID: AggregateID) : UserEvent(userID)
+data class UserRemoved(val userID: AggregateID) : UserEvent(userID)
+data class UserAddressChanged(val userID: AggregateID) : UserEvent(userID)
+data class AnotherEventCalled(override val aggregateID: AggregateID) : Event()
 
-class LocalBusTest {
+class LocalEventBusTest {
     companion object {
         val receivedAllEvents = mutableListOf<Event>()
         val receivedUserEvents = mutableListOf<UserEvent>()
-        val receivedAnotherEvents = mutableListOf<AnotherEvent>()
+        val receivedAnotherEvents = mutableListOf<AnotherEventCalled>()
         val receivedEventHandlerEvents = mutableListOf<Event>()
 
-        val localBus = localEventBus()
+        val messageBus = localMessageBus()
+        val eventBus = localEventBus(messageBus)
         val UserID = AggregateID.randomUUID()
         val events = listOf(
-                AddUser(UserID),
-                RemoveUser(UserID),
-                ChangeUserAddress(UserID),
-                AnotherEvent(AggregateID.randomUUID())
+                UserAdded(UserID),
+                UserRemoved(UserID),
+                UserAddressChanged(UserID),
+                AnotherEventCalled(AggregateID.randomUUID())
         )
 
         @JvmStatic
         @BeforeClass
         fun setup() {
-            localBus.subscribe {
+            eventBus.subscribe<Event> {
                 receivedAllEvents.add(it)
             }
 
-            localBus.subscribeOf<UserEvent> {
+            eventBus.subscribe<UserEvent> {
                 receivedUserEvents.add(it)
             }
 
-            localBus.subscribeOf<AnotherEvent> {
+            eventBus.subscribe<AnotherEventCalled> {
                 receivedAnotherEvents.add(it)
             }
 
@@ -54,10 +56,10 @@ class LocalBusTest {
                 override val handlerType: EventHandlerType
                     get() = "test-event-handler"
             }
-            localBus.addHandler(eventHandler)
+            eventBus.addHandler(eventHandler)
 
             events.forEach {
-                localBus.publish(it)
+                eventBus.publish(it)
             }
         }
     }
@@ -77,7 +79,7 @@ class LocalBusTest {
 
     @Test
     fun shouldReceivedOnlyAnotherEvents() {
-        val anotherEvent = events.filter { it is AnotherEvent }
+        val anotherEvent = events.filter { it is AnotherEventCalled }
         assertThat(receivedAnotherEvents.size, IsEqual(anotherEvent.size))
         assertThat(receivedAnotherEvents, IsEqual(anotherEvent))
     }
@@ -90,38 +92,9 @@ class LocalBusTest {
     }
 
     @Test
-    fun shouldHandleErrorSubscribe() {
-        val localBus = localEventBus()
-        val dummyException = Exception("dummy exception")
-        localBus.subscribe({
-            throw dummyException
-        }, { assertThat(dummyException, IsEqual(it)) })
-        localBus.publish(MessageSent(newAggregateID(), "some message"))
-    }
-
-    @Test
-    fun shouldHandleErrorSubscribeOf() {
-        val localBus = localEventBus()
-        val dummyException = Exception("dummy exception")
-        localBus.subscribeOf<NotificationEvent>({
-            throw dummyException
-        }, { assertThat(dummyException, IsEqual(it)) })
-        localBus.publish(MessageSent(newAggregateID(), "some message"))
-    }
-
-    @Test
-    fun shouldHandleErrorSubscribeOfWithGeneric() {
-        val localBus = localEventBus()
-        val dummyException = Exception("dummy exception")
-        localBus.subscribeOf<AnotherEvent>({
-            throw dummyException
-        }, { assertThat(dummyException, IsEqual(it)) })
-        localBus.publish(AnotherEvent(newAggregateID()))
-    }
-
-    @Test
-    fun shouldHandleErrorAddEventHandler() {
-        val localBus = localEventBus()
+    fun shouldAddEventHandlerWithError() {
+        val messageBus = localMessageBus()
+        val localBus = localEventBus(messageBus)
         val dummyException = Exception("dummy exception")
         localBus.addHandler(object : EventHandler<NotificationEvent> {
             override val handlerType: EventHandlerType
