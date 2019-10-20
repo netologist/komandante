@@ -10,7 +10,7 @@ import java.lang.reflect.Type
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.reflect
 
-fun localBusOf(): EventBus = LocalEventBus()
+fun localEventBus(): EventBus = LocalEventBus()
 
 @Suppress("UNCHECKED_CAST")
 class LocalEventBus internal constructor() : EventBus {

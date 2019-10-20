@@ -1,13 +1,12 @@
 package com.hasanozgan.komandante.commandbus
 
 import arrow.effects.IO
-import com.hasanozgan.komandante.AggregateHandler
-import com.hasanozgan.komandante.Command
-import com.hasanozgan.komandante.CommandBus
-import com.hasanozgan.komandante.CommandHandlerError
+import com.hasanozgan.komandante.*
 import io.reactivex.subjects.PublishSubject
+import kotlin.reflect.jvm.jvmErasure
+import kotlin.reflect.jvm.reflect
 
-fun localBusOf(): CommandBus = LocalCommandBus()
+fun localCommandBus(): CommandBus = LocalCommandBus()
 
 @Suppress("UNCHECKED_CAST")
 class LocalCommandBus : CommandBus {
@@ -24,20 +23,57 @@ class LocalCommandBus : CommandBus {
         }
     }
 
+    override fun subscribe(commandListener: CommandListener<Command>) {
+        publisher.ofType(Command::class.java).subscribe {
+            commandListener(it)
+        }
+    }
+
+    override fun subscribe(commandListener: CommandListener<Command>, onError: CommandHandlerError) {
+        publisher.ofType(getCommandListenerClassTypeName(commandListener))
+                .subscribe({ commandListener(it as Command) }, { onError(it) })
+    }
+
+    override fun <T : Command> subscribeOf(commandListener: CommandListener<in T>) {
+        publisher.ofType(getCommandListenerClassTypeName(commandListener)).subscribe { commandListener(it as T) }
+    }
+
+    override fun <T : Command> subscribeOf(commandListener: CommandListener<in T>, onError: CommandHandlerError) {
+        publisher.ofType(getCommandListenerClassTypeName(commandListener))
+                .subscribe({ commandListener(it as T) }, { onError(it) })
+    }
+
     override fun addHandler(aggregateHandler: AggregateHandler) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        publisher.ofType(Command::class.java).subscribe {
+            CommandHandler(aggregateHandler).handle(it)
+        }
     }
 
     override fun addHandler(aggregateHandler: AggregateHandler, onError: CommandHandlerError) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        publisher.ofType(Command::class.java).subscribe({
+            CommandHandler(aggregateHandler).handle(it)
+        }, {
+            onError(it)
+        })
     }
 
-    override fun <T : Command> addHandlerOf(clazz: Class<T>, aggregateHandler: AggregateHandler) {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun <T : Command> addHandler(aggregateHandler: AggregateHandler, baseCommandClass: Class<T>, onError: CommandHandlerError) {
+        publisher.ofType(baseCommandClass).subscribe({
+            CommandHandler(aggregateHandler).handle(it)
+        }, {
+            onError(it)
+        })
     }
 
-    override fun <T : Command> addHandlerOf(clazz: Class<T>, aggregateHandler: AggregateHandler, onError: CommandHandlerError) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun <T : Command> addHandler(aggregateHandler: AggregateHandler, baseCommandClass: Class<T>) {
+        publisher.ofType(baseCommandClass).subscribe {
+            CommandHandler(aggregateHandler).handle(it)
+        }
+    }
+
+    private fun <T> getCommandListenerClassTypeName(commandListener: CommandListener<T>): Class<out Any> {
+        val clazzType = commandListener.reflect()!!.parameters[0].type.jvmErasure.java
+        return clazzType
     }
 
 }

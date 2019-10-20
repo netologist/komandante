@@ -4,9 +4,9 @@ import arrow.effects.fix
 import com.hasanozgan.examples.bankaccount.BankAccounts.balance
 import com.hasanozgan.examples.bankaccount.BankAccounts.owner
 import com.hasanozgan.komandante.AggregateHandler
-import com.hasanozgan.komandante.CommandHandler
 import com.hasanozgan.komandante.Event
-import com.hasanozgan.komandante.eventbus.localBusOf
+import com.hasanozgan.komandante.commandbus.localCommandBus
+import com.hasanozgan.komandante.eventbus.localEventBus
 import com.hasanozgan.komandante.eventhandler.ProjectorEventHandler
 import com.hasanozgan.komandante.eventhandler.SagaEventHandler
 import com.hasanozgan.komandante.eventstore.createExposedEventStore
@@ -24,7 +24,8 @@ import kotlin.test.Test
 class BankAccountDomainIntegrationTest {
     val accountID = newAggregateID()
     val eventStore = createExposedEventStore()
-    val eventBus = localBusOf()
+    val eventBus = localEventBus()
+    val commandBus = localCommandBus()
 
     @BeforeTest
     fun prepare() {
@@ -36,21 +37,24 @@ class BankAccountDomainIntegrationTest {
         }
 
         // CQRS Setup
-        val aggregateHandler = AggregateHandler(eventStore, eventBus, BankAccountAggregateFactory())
-        val commandHandler = CommandHandler(aggregateHandler)
+        val bankAccountAggregateHandler = AggregateHandler(eventStore, eventBus, BankAccountAggregateFactory())
+        commandBus.addHandler(bankAccountAggregateHandler, BankAccountCommand::class.java)
+        commandBus.subscribeOf<NotificationCommand> {
+            println("SAGA COMMAND: ${it}")
+        }
 
         val bankAccountProjector = BankAccountProjector()
-        val projectorEventHandler = ProjectorEventHandler(bankAccountProjector, commandHandler)
+        val projectorEventHandler = ProjectorEventHandler(bankAccountProjector, commandBus)
         eventBus.addHandler(projectorEventHandler)
 
         val bankAccountWorkflow = BankAccountWorkflow()
-        val sagaEventHandler = SagaEventHandler(bankAccountWorkflow, commandHandler)
+        val sagaEventHandler = SagaEventHandler(bankAccountWorkflow, commandBus)
         eventBus.addHandler(sagaEventHandler)
 
-        commandHandler.handle(CreateAccount(accountID, "bob"))
-        commandHandler.handle(PerformDeposit(accountID, 10.20))
-        commandHandler.handle(ChangeOwner(accountID, "alice"))
-        commandHandler.handle(PerformWithdrawal(accountID, 8.20))
+        commandBus.publish(CreateAccount(accountID, "bob"))
+        commandBus.publish(PerformDeposit(accountID, 10.20))
+        commandBus.publish(ChangeOwner(accountID, "alice"))
+        commandBus.publish(PerformWithdrawal(accountID, 8.20))
     }
 
     @Test

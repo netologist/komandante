@@ -22,7 +22,7 @@ class LocalBusTest {
         val receivedAnotherEvents = mutableListOf<AnotherEvent>()
         val receivedEventHandlerEvents = mutableListOf<Event>()
 
-        val localBus = localBusOf()
+        val localBus = localEventBus()
         val UserID = AggregateID.randomUUID()
         val events = listOf(
                 AddUser(UserID),
@@ -91,7 +91,7 @@ class LocalBusTest {
 
     @Test
     fun shouldHandleErrorSubscribe() {
-        val localBus = localBusOf()
+        val localBus = localEventBus()
         val dummyException = Exception("dummy exception")
         localBus.subscribe({
             throw dummyException
@@ -101,7 +101,7 @@ class LocalBusTest {
 
     @Test
     fun shouldHandleErrorSubscribeOf() {
-        val localBus = localBusOf()
+        val localBus = localEventBus()
         val dummyException = Exception("dummy exception")
         localBus.subscribeOf<NotificationEvent>({
             throw dummyException
@@ -111,7 +111,7 @@ class LocalBusTest {
 
     @Test
     fun shouldHandleErrorSubscribeOfWithGeneric() {
-        val localBus = localBusOf()
+        val localBus = localEventBus()
         val dummyException = Exception("dummy exception")
         localBus.subscribeOf<AnotherEvent>({
             throw dummyException
@@ -121,7 +121,7 @@ class LocalBusTest {
 
     @Test
     fun shouldHandleErrorAddEventHandler() {
-        val localBus = localBusOf()
+        val localBus = localEventBus()
         val dummyException = Exception("dummy exception")
         localBus.addHandler(object : EventHandler<NotificationEvent> {
             override val handlerType: EventHandlerType
