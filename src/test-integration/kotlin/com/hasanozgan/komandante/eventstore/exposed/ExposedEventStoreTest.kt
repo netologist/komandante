@@ -12,6 +12,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Test
+import java.time.ZonedDateTime
 import kotlin.test.BeforeTest
 
 class ExposedEventStoreTest {
@@ -34,7 +35,11 @@ class ExposedEventStoreTest {
         val aliceEvents = listOf(AccountCreated(aliceAccountID, "alice"), DepositPerformed(aliceAccountID, 15.8))
 
         val exposedEventStore = createExposedEventStore()
-        exposedEventStore.save(bobEvents, 0)
+        exposedEventStore.save(bobEvents.mapIndexed { i, e ->
+            e.timestamp = ZonedDateTime.now()
+            e.version = i + 1;
+            e
+        }, 0)
         exposedEventStore.save(aliceEvents, 0)
 
         val actualEventList = exposedEventStore.load(bobAccountID).fix().unsafeRunSync()

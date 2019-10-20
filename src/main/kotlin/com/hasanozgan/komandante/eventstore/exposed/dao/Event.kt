@@ -10,7 +10,7 @@ class Event(id: EntityID<UUID>) : UUIDEntity(id) {
 
     var canonicalName by Events.canonicalName
     var values by Events.values
-    var timestamp = Events.timestamp
+    var publishedOn = Events.publishedOn
     var version = Events.version
     var aggregateID = Events.aggregateID
 }

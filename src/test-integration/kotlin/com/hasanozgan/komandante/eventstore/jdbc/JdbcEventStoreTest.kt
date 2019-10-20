@@ -19,9 +19,6 @@ class JdbcEventStoreTest {
         val hikariDataSource = HikariDataSource()
         hikariDataSource.driverClassName = "org.h2.Driver"
         hikariDataSource.jdbcUrl = "jdbc:h2:mem:jdbc_test;DB_CLOSE_DELAY=-1"
-//        hikariDataSource.jdbcUrl = "jdbc:h2:mem:eventstore;DB_CLOSE_DELAY=-1;INIT=CREATE SCHEMA IF NOT EXISTS eventstore;"
-//        hikariDataSource.username = "sa"
-//        hikariDataSource.password = "sup3r-s3cr3t"
         hikariDataSource.maximumPoolSize = 30
 
         return hikariDataSource
@@ -41,7 +38,7 @@ class JdbcEventStoreTest {
               aggregate_id VARCHAR(36) NOT NULL,
               canonical_name VARCHAR(255) NOT NULL,
               `values` TEXT NOT NULL,
-              `timestamp` NUMBER NOT NULL,
+              published_on TIMESTAMP NOT NULL,
               version NUMBER NOT NULL 
             );
         """.trimIndent())
@@ -64,7 +61,10 @@ class JdbcEventStoreTest {
         val aliceEvents = listOf(AccountCreated(aliceAccountID, "alice"), DepositPerformed(aliceAccountID, 15.8))
 
         val jdbcEventStore = createJdbcEventStore(datasource)
-        jdbcEventStore.save(bobEvents, 0)
+        jdbcEventStore.save(bobEvents.mapIndexed { i, e ->
+            e.version = i + 1;
+            e
+        }, 0)
         jdbcEventStore.save(aliceEvents, 0)
 
         val actualEventList = jdbcEventStore.load(bobAccountID).fix().unsafeRunSync()

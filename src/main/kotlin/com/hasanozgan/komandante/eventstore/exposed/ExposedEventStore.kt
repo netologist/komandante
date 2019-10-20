@@ -6,20 +6,16 @@ import arrow.effects.IO
 import com.google.gson.ExclusionStrategy
 import com.google.gson.FieldAttributes
 import com.google.gson.GsonBuilder
-import com.hasanozgan.komandante.AggregateID
-import com.hasanozgan.komandante.Event
-import com.hasanozgan.komandante.EventList
-import com.hasanozgan.komandante.EventStore
+import com.hasanozgan.komandante.*
 import com.hasanozgan.komandante.eventstore.exposed.dao.Events
 import com.hasanozgan.komandante.eventstore.exposed.dao.Events.canonicalName
-import com.hasanozgan.komandante.eventstore.exposed.dao.Events.timestamp
+import com.hasanozgan.komandante.eventstore.exposed.dao.Events.publishedOn
 import com.hasanozgan.komandante.eventstore.exposed.dao.Events.values
 import com.hasanozgan.komandante.eventstore.exposed.dao.Events.version
 import com.hasanozgan.komandante.eventstore.forceUpdateAggregateID
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.joda.time.DateTime
 import kotlin.reflect.full.declaredMembers
 
 class CustomExclusionStrategy : ExclusionStrategy {
@@ -39,11 +35,11 @@ class ExposedEventStore : EventStore {
             val result = mutableListOf<Event>()
             val gson = GsonBuilder().setExclusionStrategies(CustomExclusionStrategy()).create()
 
-            Events.select { Events.aggregateID.eq(aggregateID) }.sortedBy { timestamp }.map {
+            Events.select { Events.aggregateID.eq(aggregateID) }.sortedBy { publishedOn }.map {
                 val eventClazz = Class.forName(it[canonicalName])
                 val event = gson.fromJson(it[values], eventClazz) as (Event)
                 event.version = it[version]
-                event.timestamp = it[timestamp].toGregorianCalendar().toZonedDateTime()
+                event.timestamp = it[publishedOn].toGregorianCalendar().toZonedDateTime()
                 forceUpdateAggregateID(event, aggregateID)
                 result.add(event)
             }.distinct()
@@ -59,7 +55,7 @@ class ExposedEventStore : EventStore {
             transaction {
                 Events.insert {
                     it[aggregateID] = event.aggregateID
-                    it[timestamp] = DateTime(event.timestamp.toInstant().toEpochMilli())
+                    it[publishedOn] = ToDateTime(event.timestamp)
                     it[canonicalName] = event.javaClass.canonicalName
                     it[values] = gson.toJson(event)
                     it[this.version] = event.version
