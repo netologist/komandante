@@ -27,10 +27,6 @@ interface Aggregate {
 
     fun apply(event: Event): Try<Event>
 
-    fun clearEvents() {
-        events.clear()
-    }
-
     fun incrementVersion() {
         version++
     }

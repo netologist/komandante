@@ -89,4 +89,21 @@ class LocalBusTest {
         assertThat(receivedEventHandlerEvents.size, IsEqual(userEvents.size))
         assertThat(receivedEventHandlerEvents, IsEqual(userEvents))
     }
+
+    @Test
+    fun shouldHandleErrors() {
+        var dummyException = Exception("dummy exception")
+        localBus.subscribe({
+            throw dummyException
+        }, {})
+
+        localBus.subscribeOf<UserEvent> {
+            receivedUserEvents.add(it)
+        }
+
+        localBus.subscribeOf<AnotherEvent> {
+            receivedAnotherEvents.add(it)
+        }
+
+    }
 }

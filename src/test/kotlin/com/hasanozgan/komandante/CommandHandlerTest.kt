@@ -61,4 +61,20 @@ class CommandHandlerTest {
         assertTrue(maybeEvent.isFailure())
         assertThat(InsufficientBalanceError, IsEqual((maybeEvent as Failure).exception))
     }
+
+    @Test
+    fun shouldCommandHandlerReturnAErrorInvalidCommand() {
+        val mockEventStore = mockk<EventStore>()
+        val mockEventBus = mockk<EventBus<Event>>()
+
+        every { mockEventStore.load(any()) } returns IO.invoke { listOf<Event>() }
+
+        val aggregateFactory = BankAccountAggregateFactory()
+        val aggregateHandler = AggregateHandler(mockEventStore, mockEventBus, aggregateFactory)
+        val commandHandler = CommandHandler(aggregateHandler)
+        val maybeEvent = commandHandler.handle(SendMessage("some command message"))
+
+        assertTrue(maybeEvent.isFailure())
+        assertThat(UnknownCommandError, IsEqual((maybeEvent as Failure).exception))
+    }
 }

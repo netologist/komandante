@@ -6,21 +6,18 @@ import com.hasanozgan.komandante.Workflow
 
 class BankAccountWorkflow : Workflow<BankAccountEvent> {
     override fun <T : Event> run(event: T): List<Command> {
-
-        println(event)
-
         when (event) {
             is AccountCreated ->
-                return emptyList()
+                return listOf(SendMessage("account created ${event.owner} for ${event.aggregateID}"))
 
             is DepositPerformed ->
-                return emptyList()
+                return listOf(SendMessage("${event.amount} deposit performed for ${event.aggregateID}"))
 
             is OwnerChanged ->
-                return emptyList()
+                return listOf(SendMessage("${event.owner} owner changed for ${event.aggregateID}"))
 
             is WithdrawalPerformed ->
-                return emptyList()
+                return listOf(SendMessage("${event.amount} withdrawal performed for ${event.aggregateID}"))
         }
         return emptyList()
     }

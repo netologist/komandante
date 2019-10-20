@@ -10,7 +10,7 @@ import java.lang.reflect.Type
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.reflect
 
-fun <T : Event> localBusOf(): LocalEventBus<T> = LocalEventBus()
+fun <T : Event> localBusOf(): EventBus<T> = LocalEventBus()
 
 @Suppress("UNCHECKED_CAST")
 class LocalEventBus<T : Event> internal constructor() : EventBus<T> {
@@ -43,7 +43,7 @@ class LocalEventBus<T : Event> internal constructor() : EventBus<T> {
         handleEventListener(eventListener)
     }
 
-    override fun <T> subscribeOf(eventListener: EventListener<in T>, onError: ErrorHandler) {
+    override fun <T> subscribeOf(eventListener: EventListener<in T>, onError: EventHandlerError) {
         handleEventListenerWithError(eventListener, onError)
     }
 
@@ -53,7 +53,7 @@ class LocalEventBus<T : Event> internal constructor() : EventBus<T> {
         }
     }
 
-    override fun addHandler(eventHandler: EventHandler<out Event>, onError: ErrorHandler) {
+    override fun addHandler(eventHandler: EventHandler<out Event>, onError: EventHandlerError) {
         publisher.ofType(getEventHandlerClassTypeName(eventHandler)).subscribe({
             eventHandler.handle(it as Event)
         }, { onError(it) })
