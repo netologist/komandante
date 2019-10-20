@@ -10,8 +10,8 @@ data class ChangeOwner(val accountID: AggregateID, val owner: String) : BankAcco
 data class PerformDeposit(val accountID: AggregateID, val amount: Double) : BankAccountCommand(accountID)
 data class PerformWithdrawal(val accountID: AggregateID, val amount: Double) : BankAccountCommand(accountID)
 
-sealed class NotificationEvent() : Command() {
+sealed class NotificationCommand() : Command() {
     override val aggregateID: AggregateID
         get() = newAggregateID()
 }
-data class SendMessage(val message: String) : NotificationEvent()
+data class SendMessage(val message: String) : NotificationCommand()

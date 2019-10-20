@@ -1,9 +1,8 @@
 package com.hasanozgan.komandante.eventbus
 
-import com.hasanozgan.komandante.AggregateID
-import com.hasanozgan.komandante.Event
-import com.hasanozgan.komandante.EventHandler
-import com.hasanozgan.komandante.EventHandlerType
+import com.hasanozgan.examples.bankaccount.MessageSent
+import com.hasanozgan.examples.bankaccount.NotificationEvent
+import com.hasanozgan.komandante.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual
 import org.junit.BeforeClass
@@ -91,19 +90,47 @@ class LocalBusTest {
     }
 
     @Test
-    fun shouldHandleErrors() {
-        var dummyException = Exception("dummy exception")
+    fun shouldHandleErrorSubscribe() {
+        val localBus = localBusOf<Event>()
+        val dummyException = Exception("dummy exception")
         localBus.subscribe({
             throw dummyException
-        }, {})
+        }, { assertThat(dummyException, IsEqual(it)) })
+        localBus.publish(MessageSent(newAggregateID(), "some message"))
+    }
 
-        localBus.subscribeOf<UserEvent> {
-            receivedUserEvents.add(it)
-        }
+    @Test
+    fun shouldHandleErrorSubscribeOf() {
+        val localBus = localBusOf<Event>()
+        val dummyException = Exception("dummy exception")
+        localBus.subscribeOf<NotificationEvent>({
+            throw dummyException
+        }, { assertThat(dummyException, IsEqual(it)) })
+        localBus.publish(MessageSent(newAggregateID(), "some message"))
+    }
 
-        localBus.subscribeOf<AnotherEvent> {
-            receivedAnotherEvents.add(it)
-        }
+    @Test
+    fun shouldHandleErrorSubscribeOfWithGeneric() {
+        val localBus = localBusOf<Event>()
+        val dummyException = Exception("dummy exception")
+        localBus.subscribeOf<AnotherEvent>({
+            throw dummyException
+        }, { assertThat(dummyException, IsEqual(it)) })
+        localBus.publish(AnotherEvent(newAggregateID()))
+    }
 
+    @Test
+    fun shouldHandleErrorAddEventHandler() {
+        val localBus = localBusOf<Event>()
+        val dummyException = Exception("dummy exception")
+        localBus.addHandler(object : EventHandler<NotificationEvent> {
+            override val handlerType: EventHandlerType
+                get() = "dummy-handler"
+
+            override fun <T : Event> handle(event: T) {
+                throw dummyException
+            }
+        }, { assertThat(dummyException, IsEqual(it)) })
+        localBus.publish(MessageSent(newAggregateID(), "some message"))
     }
 }
