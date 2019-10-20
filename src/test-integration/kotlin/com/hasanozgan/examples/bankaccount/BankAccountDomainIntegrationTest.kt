@@ -24,7 +24,7 @@ import kotlin.test.Test
 class BankAccountDomainIntegrationTest {
     val accountID = newAggregateID()
     val eventStore = createExposedEventStore()
-    val eventBus = localBusOf<BankAccountEvent>()
+    val eventBus = localBusOf()
 
     @BeforeTest
     fun prepare() {

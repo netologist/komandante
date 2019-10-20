@@ -15,7 +15,7 @@ class AggregateHandlerTest {
     @Test
     fun shouldAggregateHandlerLoadFromEventStore() {
         val mockEventStore = mockk<EventStore>()
-        val mockEventBus = mockk<EventBus<Event>>()
+        val mockEventBus = mockk<EventBus>()
 
         val accountID = newAggregateID()
         every { mockEventStore.load(accountID) } returns IO.invoke {
@@ -47,7 +47,7 @@ class AggregateHandlerTest {
     @Test
     fun shouldAggregateHandlerSaveToEventStoreAndPublishToEventBus() {
         val mockEventStore = mockk<EventStore>()
-        val mockEventBus = mockk<EventBus<out Event>>()
+        val mockEventBus = mockk<EventBus>()
 
         val accountID = newAggregateID()
         val version = 0
@@ -79,7 +79,7 @@ class AggregateHandlerTest {
     @Test
     fun shouldAggregateHandlerSaveMethodReturnADomainError() {
         val mockEventStore = mockk<EventStore>()
-        val mockEventBus = mockk<EventBus<Event>>()
+        val mockEventBus = mockk<EventBus>()
 
         val accountID = newAggregateID()
         val version = 2

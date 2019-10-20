@@ -15,7 +15,7 @@ class CommandHandlerTest {
     @Test
     fun shouldCommandHandlerReturnAnEvent() {
         val mockEventStore = mockk<EventStore>()
-        val mockEventBus = mockk<EventBus<out Event>>()
+        val mockEventBus = mockk<EventBus>()
 
         val accountID = newAggregateID()
         every { mockEventStore.load(accountID) } returns IO.invoke {
@@ -43,7 +43,7 @@ class CommandHandlerTest {
     @Test
     fun shouldCommandHandlerReturnAError() {
         val mockEventStore = mockk<EventStore>()
-        val mockEventBus = mockk<EventBus<Event>>()
+        val mockEventBus = mockk<EventBus>()
 
         val accountID = newAggregateID()
         every { mockEventStore.load(accountID) } returns IO.invoke {
@@ -65,7 +65,7 @@ class CommandHandlerTest {
     @Test
     fun shouldCommandHandlerReturnAErrorInvalidCommand() {
         val mockEventStore = mockk<EventStore>()
-        val mockEventBus = mockk<EventBus<Event>>()
+        val mockEventBus = mockk<EventBus>()
 
         every { mockEventStore.load(any()) } returns IO.invoke { listOf<Event>() }
 

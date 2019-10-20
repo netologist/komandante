@@ -10,14 +10,14 @@ import java.lang.reflect.Type
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.reflect
 
-fun <T : Event> localBusOf(): EventBus<T> = LocalEventBus()
+fun localBusOf(): EventBus = LocalEventBus()
 
 @Suppress("UNCHECKED_CAST")
-class LocalEventBus<T : Event> internal constructor() : EventBus<T> {
+class LocalEventBus internal constructor() : EventBus {
 
-    private val publisher = PublishSubject.create<T>()
+    private val publisher = PublishSubject.create<Event>()
 
-    override fun publish(event: T): IO<T> {
+    override fun <T : Event> publish(event: T): IO<T> {
         try {
             publisher.onNext(event)
             return IO.invoke { event }
@@ -27,23 +27,19 @@ class LocalEventBus<T : Event> internal constructor() : EventBus<T> {
         }
     }
 
-    override fun <K> publish(event: K): IO<K> {
-        return publish(event as T).map { it as K }
-    }
-
-    override fun subscribe(eventListener: EventListener<T>) {
+    override fun subscribe(eventListener: EventListener<Event>) {
         handleEventListener(eventListener)
     }
 
-    override fun subscribe(eventListener: EventListener<T>, onError: (error: Throwable) -> Unit) {
+    override fun subscribe(eventListener: EventListener<Event>, onError: EventHandlerError) {
         handleEventListenerWithError(eventListener, onError)
     }
 
-    override fun <T> subscribeOf(eventListener: EventListener<in T>) {
+    override fun <T : Event> subscribeOf(eventListener: EventListener<in T>) {
         handleEventListener(eventListener)
     }
 
-    override fun <T> subscribeOf(eventListener: EventListener<in T>, onError: EventHandlerError) {
+    override fun <T : Event> subscribeOf(eventListener: EventListener<in T>, onError: EventHandlerError) {
         handleEventListenerWithError(eventListener, onError)
     }
 

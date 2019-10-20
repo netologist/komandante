@@ -14,4 +14,5 @@ sealed class NotificationCommand() : Command() {
     override val aggregateID: AggregateID
         get() = newAggregateID()
 }
+
 data class SendMessage(val message: String) : NotificationCommand()
