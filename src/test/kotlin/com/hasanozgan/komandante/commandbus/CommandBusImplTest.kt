@@ -83,9 +83,9 @@ class CommandBusImplTest {
         val messageBus = localMessageBus()
         val commandBus = newCommandBus(messageBus)
         val userID = newAggregateID()
-        val commandHandler = mockk<CommandHandler<AddUser>>(relaxed = true)
+        val commandHandler = mockk<CommandHandler>(relaxed = true)
 
-        commandBus.addHandler(commandHandler)
+        commandBus.addHandler(UserCommand::class.java, commandHandler)
         commandBus.publish(AddUser(userID))
 
         verify { commandHandler.handle(AddUser(userID)) }

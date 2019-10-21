@@ -44,10 +44,8 @@ class BankAccountDomainIntegrationTest {
 
         // CQRS Setup
         val bankAccountAggregateHandler = AggregateHandler(eventStore, eventBus, BankAccountAggregateFactory())
-        val bankAccountCommandHandler = CommandHandler<BankAccountCommand>(bankAccountAggregateHandler)
-        commandBus.addHandler(bankAccountCommandHandler, {
-            logger.error(it.message)
-        })
+        val bankAccountCommandHandler = CommandHandler(bankAccountAggregateHandler)
+        commandBus.addHandler(BankAccountCommand::class.java, bankAccountCommandHandler, { logger.error(it.message) })
         commandBus.subscribe<NotificationCommand> {
             println("SAGA COMMAND: ${it}")
         }

@@ -1,4 +1,4 @@
-package com.hasanozgan.komandante
+package com.hasanozgan.komandante.eventstore
 
 import org.joda.time.DateTime
 import java.sql.Timestamp

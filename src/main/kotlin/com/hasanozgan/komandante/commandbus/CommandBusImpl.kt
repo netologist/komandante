@@ -19,18 +19,15 @@ class CommandBusImpl(val messageBus: MessageBus) : CommandBus {
         messageBus.subscribeOf<T>(messageListener)
     }
 
-    override fun addHandler(commandHandler: CommandHandler<out Command>) {
-        this.addHandler(commandHandler, DefaultErrorHandler)
+    override fun <T : Command> addHandler(filterType: Class<T>, commandHandler: CommandHandler) {
+        this.addHandler<T>(filterType, commandHandler, DefaultErrorHandler)
     }
 
-    override fun addHandler(commandHandler: CommandHandler<out Command>, onError: ErrorHandler) {
-        //TODO: Type detection required
-        messageBus.subscribe(Command::class.java, {
+    override fun <T : Command> addHandler(filterType: Class<T>, commandHandler: CommandHandler, onError: ErrorHandler) {
+        messageBus.subscribe(filterType, {
             when (val result = commandHandler.handle(it as Command)) {
                 is Failure -> {
-                    logger.error(result.exception.message)
-                    // TODO: Decide about exception error or warning?
-//                    throw result.exception
+                    logger.warn(result.exception.message)
                 }
             }
         }, { onError(it) })
