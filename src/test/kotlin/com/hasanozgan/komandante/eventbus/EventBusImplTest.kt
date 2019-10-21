@@ -24,7 +24,7 @@ class LocalEventBusTest {
         val receivedEventHandlerEvents = mutableListOf<Event>()
 
         val messageBus = localMessageBus()
-        val eventBus = localEventBus(messageBus)
+        val eventBus = newEventBus(messageBus)
         val UserID = AggregateID.randomUUID()
         val events = listOf(
                 UserAdded(UserID),
@@ -94,7 +94,7 @@ class LocalEventBusTest {
     @Test
     fun shouldAddEventHandlerWithError() {
         val messageBus = localMessageBus()
-        val localBus = localEventBus(messageBus)
+        val localBus = newEventBus(messageBus)
         val dummyException = Exception("dummy exception")
         localBus.addHandler(object : EventHandler<NotificationEvent> {
             override val handlerType: EventHandlerType
