@@ -1,6 +1,10 @@
-package com.hasanozgan.komandante
+package com.hasanozgan.komandante.commandbus
 
 import arrow.effects.IO
+import com.hasanozgan.komandante.Command
+import com.hasanozgan.komandante.CommandHandler
+import com.hasanozgan.komandante.ErrorHandler
+import com.hasanozgan.komandante.MessageListener
 
 interface CommandBus {
     fun publish(command: Command): IO<Command>

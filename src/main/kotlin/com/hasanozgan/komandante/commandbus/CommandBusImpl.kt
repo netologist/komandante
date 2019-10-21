@@ -1,12 +1,16 @@
 package com.hasanozgan.komandante.commandbus
 
+import arrow.core.Failure
 import arrow.effects.IO
 import com.hasanozgan.komandante.*
 import com.hasanozgan.komandante.messagebus.DefaultErrorHandler
+import org.slf4j.LoggerFactory
 
-fun localCommandBus(messageBus: MessageBus): CommandBus = LocalCommandBus(messageBus)
+fun newCommandBus(messageBus: MessageBus): CommandBus = CommandBusImpl(messageBus)
 
-class LocalCommandBus(val messageBus: MessageBus) : CommandBus {
+class CommandBusImpl(val messageBus: MessageBus) : CommandBus {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     override fun publish(command: Command): IO<Command> {
         return messageBus.publish(command)
     }
@@ -20,8 +24,15 @@ class LocalCommandBus(val messageBus: MessageBus) : CommandBus {
     }
 
     override fun addHandler(commandHandler: CommandHandler<out Command>, onError: ErrorHandler) {
+        //TODO: Type detection required
         messageBus.subscribe(Command::class.java, {
-            commandHandler.handle(it as Command)
+            when (val result = commandHandler.handle(it as Command)) {
+                is Failure -> {
+                    logger.error(result.exception.message)
+                    // TODO: Decide about exception error or warning?
+//                    throw result.exception
+                }
+            }
         }, { onError(it) })
     }
 }

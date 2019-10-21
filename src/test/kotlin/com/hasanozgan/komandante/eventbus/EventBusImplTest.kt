@@ -16,7 +16,7 @@ data class UserRemoved(val userID: AggregateID) : UserEvent(userID)
 data class UserAddressChanged(val userID: AggregateID) : UserEvent(userID)
 data class AnotherEventCalled(override val aggregateID: AggregateID) : Event()
 
-class LocalEventBusTest {
+class EventBusImplTest {
     companion object {
         val receivedAllEvents = mutableListOf<Event>()
         val receivedUserEvents = mutableListOf<UserEvent>()

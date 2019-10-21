@@ -4,6 +4,7 @@ import arrow.core.Failure
 import arrow.core.Success
 import arrow.effects.IO
 import com.hasanozgan.examples.bankaccount.*
+import com.hasanozgan.komandante.eventbus.EventBus
 import io.mockk.every
 import io.mockk.mockk
 import org.hamcrest.MatcherAssert.assertThat

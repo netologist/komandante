@@ -6,8 +6,8 @@ import com.hasanozgan.examples.bankaccount.BankAccounts.owner
 import com.hasanozgan.komandante.AggregateHandler
 import com.hasanozgan.komandante.CommandHandler
 import com.hasanozgan.komandante.Event
-import com.hasanozgan.komandante.commandbus.localCommandBus
-import com.hasanozgan.komandante.eventbus.localEventBus
+import com.hasanozgan.komandante.commandbus.newCommandBus
+import com.hasanozgan.komandante.eventbus.newEventBus
 import com.hasanozgan.komandante.eventhandler.ProjectorEventHandler
 import com.hasanozgan.komandante.eventhandler.SagaEventHandler
 import com.hasanozgan.komandante.eventstore.createExposedEventStore
@@ -20,15 +20,18 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.slf4j.LoggerFactory
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class BankAccountDomainIntegrationTest {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     val accountID = newAggregateID()
     val eventStore = createExposedEventStore()
     val messageBus = localMessageBus()
-    val eventBus = localEventBus(messageBus)
-    val commandBus = localCommandBus(messageBus)
+    val eventBus = newEventBus(messageBus)
+    val commandBus = newCommandBus(messageBus)
 
     @BeforeTest
     fun prepare() {
@@ -42,7 +45,9 @@ class BankAccountDomainIntegrationTest {
         // CQRS Setup
         val bankAccountAggregateHandler = AggregateHandler(eventStore, eventBus, BankAccountAggregateFactory())
         val bankAccountCommandHandler = CommandHandler<BankAccountCommand>(bankAccountAggregateHandler)
-        commandBus.addHandler(bankAccountCommandHandler)
+        commandBus.addHandler(bankAccountCommandHandler, {
+            logger.error(it.message)
+        })
         commandBus.subscribe<NotificationCommand> {
             println("SAGA COMMAND: ${it}")
         }

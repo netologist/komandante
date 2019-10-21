@@ -8,9 +8,9 @@ import com.hasanozgan.komandante.messagebus.DefaultErrorHandler
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
-fun localEventBus(messageBus: MessageBus): EventBus = LocalEventBus(messageBus)
+fun newEventBus(messageBus: MessageBus): EventBus = EventBusImpl(messageBus)
 
-class LocalEventBus internal constructor(val messageBus: MessageBus) : EventBus {
+class EventBusImpl internal constructor(val messageBus: MessageBus) : EventBus {
     override fun publish(message: Event): IO<Event> {
         return messageBus.publish(message)
     }

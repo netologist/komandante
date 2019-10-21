@@ -21,14 +21,14 @@ data class ChangeUserAddress(val userID: AggregateID) : UserCommand(userID)
 data class AnotherCommand(override val aggregateID: AggregateID) : Command()
 
 
-class LocalCommandBusTest {
+class CommandBusImplTest {
     companion object {
         val receivedAllCommands = mutableListOf<Command>()
         val receivedUserCommands = mutableListOf<UserCommand>()
         val receivedAnotherCommands = mutableListOf<AnotherCommand>()
 
         val messageBus = localMessageBus()
-        val commandBus = localCommandBus(messageBus)
+        val commandBus = newCommandBus(messageBus)
         val UserID = AggregateID.randomUUID()
         val commands = listOf(
                 AddUser(UserID),
@@ -81,7 +81,7 @@ class LocalCommandBusTest {
     @Test
     fun shouldAddCommandHandler() {
         val messageBus = localMessageBus()
-        val commandBus = localCommandBus(messageBus)
+        val commandBus = newCommandBus(messageBus)
         val userID = newAggregateID()
         val commandHandler = mockk<CommandHandler<AddUser>>(relaxed = true)
 
