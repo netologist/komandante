@@ -9,9 +9,9 @@ import com.hasanozgan.komandante.commandbus.newCommandBus
 import com.hasanozgan.komandante.eventbus.newEventBus
 import com.hasanozgan.komandante.eventhandler.ProjectorEventHandler
 import com.hasanozgan.komandante.eventhandler.SagaEventHandler
-import com.hasanozgan.komandante.eventstore.createExposedEventStore
+import com.hasanozgan.komandante.eventstore.newEventStoreWithExposedAdapter
 import com.hasanozgan.komandante.eventstore.exposed.dao.Events
-import com.hasanozgan.komandante.messagebus.localMessageBus
+import com.hasanozgan.komandante.messagebus.newMessageBusWithLocalAdapter
 import com.hasanozgan.komandante.newAggregateID
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual
@@ -27,10 +27,10 @@ class BankAccountDomainIntegrationTest {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     val accountID = newAggregateID()
-    val messageBus = localMessageBus()
+    val messageBus = newMessageBusWithLocalAdapter()
     val commandBus = newCommandBus(messageBus)
     val eventBus = newEventBus(messageBus)
-    val eventStore = createExposedEventStore()
+    val eventStore = newEventStoreWithExposedAdapter()
     val aggregateHandler = AggregateHandler(eventStore, eventBus)
 
     @BeforeTest
@@ -43,7 +43,7 @@ class BankAccountDomainIntegrationTest {
         }
 
         // CQRS Setup
-        commandBus.RegisterAggregate(aggregateHandler, BankAccountAggregateFactory())
+        commandBus.registerAggregate(aggregateHandler, BankAccountAggregateFactory())
         commandBus.subscribe<NotificationCommand> {
             println("SAGA COMMAND: ${it}")
         }

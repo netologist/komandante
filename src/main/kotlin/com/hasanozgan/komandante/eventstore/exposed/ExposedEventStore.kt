@@ -10,7 +10,7 @@ import com.hasanozgan.komandante.AggregateID
 import com.hasanozgan.komandante.Event
 import com.hasanozgan.komandante.EventList
 import com.hasanozgan.komandante.EventStore
-import com.hasanozgan.komandante.eventstore.ToDateTime
+import com.hasanozgan.komandante.eventstore.toDateTime
 import com.hasanozgan.komandante.eventstore.exposed.dao.Events
 import com.hasanozgan.komandante.eventstore.exposed.dao.Events.canonicalName
 import com.hasanozgan.komandante.eventstore.exposed.dao.Events.publishedOn
@@ -59,7 +59,7 @@ class ExposedEventStore : EventStore {
             transaction {
                 Events.insert {
                     it[aggregateID] = event.aggregateID
-                    it[publishedOn] = ToDateTime(event.timestamp)
+                    it[publishedOn] = toDateTime(event.timestamp)
                     it[canonicalName] = event.javaClass.canonicalName
                     it[values] = gson.toJson(event)
                     it[this.version] = event.version

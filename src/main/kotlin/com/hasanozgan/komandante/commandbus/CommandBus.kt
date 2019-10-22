@@ -10,7 +10,5 @@ interface CommandBus {
     fun publish(command: Command): IO<Command>
     fun <T : Command> subscribe(messageListener: MessageListener<in T>)
 
-    fun <T : Command> RegisterAggregate(aggregateHandler: AggregateHandler, aggregateFactory: AggregateFactory<T, *>)
-//    fun <T : Command> addHandler(filterType: Class<T>, commandHandler: CommandHandler)
-//    fun <T : Command> addHandler(filterType: Class<T>, commandHandler: CommandHandler, onError: ErrorHandler)
+    fun <T : Command> registerAggregate(aggregateHandler: AggregateHandler, aggregateFactory: AggregateFactory<T, *>)
 }

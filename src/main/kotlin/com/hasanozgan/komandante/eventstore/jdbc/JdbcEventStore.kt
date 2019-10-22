@@ -6,7 +6,7 @@ import com.hasanozgan.komandante.AggregateID
 import com.hasanozgan.komandante.Event
 import com.hasanozgan.komandante.EventList
 import com.hasanozgan.komandante.EventStore
-import com.hasanozgan.komandante.eventstore.ToTimestamp
+import com.hasanozgan.komandante.eventstore.toTimestamp
 import com.hasanozgan.komandante.eventstore.exposed.CustomExclusionStrategy
 import com.hasanozgan.komandante.eventstore.forceUpdateAggregateID
 import org.joda.time.DateTime
@@ -47,7 +47,7 @@ class JdbcEventStore(val dataSource: DataSource) : EventStore {
             stmt.setString(2, it.aggregateID.toString())
             stmt.setString(3, it.javaClass.canonicalName)
             stmt.setString(4, gson.toJson(it))
-            stmt.setTimestamp(5, ToTimestamp(it.timestamp))
+            stmt.setTimestamp(5, toTimestamp(it.timestamp))
             stmt.setInt(6, it.version)
             stmt.addBatch();
         }

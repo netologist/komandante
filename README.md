@@ -12,13 +12,13 @@ Komandante is CQRS / ES toolkit
 
 ### Main Setup
 ```kotlin
-val messageBus = localMessageBus()
+val messageBus = newMessageBusWithLocalAdapter()
 val commandBus = newCommandBus(messageBus)
 val eventBus = newEventBus(messageBus)
-val eventStore = createExposedEventStore()
+val eventStore = newEventStoreWithExposedAdapter()
 val aggregateHandler = AggregateHandler(eventStore, eventBus)
 
-commandBus.RegisterAggregate(aggregateHandler, BankAccountAggregateFactory())
+commandBus.registerAggregate(aggregateHandler, BankAccountAggregateFactory())
 commandBus.subscribe<NotificationCommand> {
     println("SAGA COMMAND: ${it}")
 }

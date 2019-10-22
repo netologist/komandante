@@ -3,7 +3,7 @@ package com.hasanozgan.komandante.eventstore.jdbc
 import arrow.effects.fix
 import com.hasanozgan.examples.bankaccount.AccountCreated
 import com.hasanozgan.examples.bankaccount.DepositPerformed
-import com.hasanozgan.komandante.eventstore.createJdbcEventStore
+import com.hasanozgan.komandante.eventstore.newEventStoreWithJdbcAdapter
 import com.hasanozgan.komandante.newAggregateID
 import com.zaxxer.hikari.HikariDataSource
 import org.hamcrest.MatcherAssert
@@ -60,7 +60,7 @@ class JdbcEventStoreTest {
         val bobEvents = listOf(AccountCreated(bobAccountID, "bob"), DepositPerformed(bobAccountID, 20.0))
         val aliceEvents = listOf(AccountCreated(aliceAccountID, "alice"), DepositPerformed(aliceAccountID, 15.8))
 
-        val jdbcEventStore = createJdbcEventStore(datasource)
+        val jdbcEventStore = newEventStoreWithJdbcAdapter(datasource)
         jdbcEventStore.save(bobEvents.mapIndexed { i, e ->
             e.version = i + 1;
             e
@@ -74,7 +74,7 @@ class JdbcEventStoreTest {
     @Test
     fun shouldReturnEmptyListLoadFromEventStore() {
         val bobAccountID = newAggregateID()
-        val rdbmsEventStore = createJdbcEventStore(datasource)
+        val rdbmsEventStore = newEventStoreWithJdbcAdapter(datasource)
 
         val actualEventList = rdbmsEventStore.load(bobAccountID).fix().unsafeRunSync()
         MatcherAssert.assertThat(emptyList(), IsEqual(actualEventList))

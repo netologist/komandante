@@ -11,7 +11,7 @@ import kotlin.reflect.jvm.reflect
 
 val DefaultErrorHandler: ErrorHandler = {}
 
-fun localMessageBus(): MessageBus = LocalMessageBus()
+fun newMessageBusWithLocalAdapter(): MessageBus = LocalMessageBus()
 
 @Suppress("UNCHECKED_CAST")
 class LocalMessageBus internal constructor() : MessageBus {

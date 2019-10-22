@@ -3,7 +3,7 @@ package com.hasanozgan.komandante.eventstore.exposed
 import arrow.effects.fix
 import com.hasanozgan.examples.bankaccount.AccountCreated
 import com.hasanozgan.examples.bankaccount.DepositPerformed
-import com.hasanozgan.komandante.eventstore.createExposedEventStore
+import com.hasanozgan.komandante.eventstore.newEventStoreWithExposedAdapter
 import com.hasanozgan.komandante.eventstore.exposed.dao.Events
 import com.hasanozgan.komandante.newAggregateID
 import org.hamcrest.MatcherAssert.assertThat
@@ -34,7 +34,7 @@ class ExposedEventStoreTest {
         val bobEvents = listOf(AccountCreated(bobAccountID, "bob"), DepositPerformed(bobAccountID, 20.0))
         val aliceEvents = listOf(AccountCreated(aliceAccountID, "alice"), DepositPerformed(aliceAccountID, 15.8))
 
-        val exposedEventStore = createExposedEventStore()
+        val exposedEventStore = newEventStoreWithExposedAdapter()
         exposedEventStore.save(bobEvents.mapIndexed { i, e ->
             e.timestamp = ZonedDateTime.now()
             e.version = i + 1;
@@ -49,7 +49,7 @@ class ExposedEventStoreTest {
     @Test
     fun shouldReturnEmptyListLoadFromEventStore() {
         val bobAccountID = newAggregateID()
-        val rdbmsEventStore = createExposedEventStore()
+        val rdbmsEventStore = newEventStoreWithExposedAdapter()
 
         val actualEventList = rdbmsEventStore.load(bobAccountID).fix().unsafeRunSync()
         assertThat(emptyList(), IsEqual(actualEventList))

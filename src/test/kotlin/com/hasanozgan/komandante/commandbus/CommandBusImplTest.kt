@@ -2,7 +2,7 @@ package com.hasanozgan.komandante.commandbus
 
 import com.hasanozgan.examples.bankaccount.BankAccountAggregate
 import com.hasanozgan.komandante.*
-import com.hasanozgan.komandante.messagebus.localMessageBus
+import com.hasanozgan.komandante.messagebus.newMessageBusWithLocalAdapter
 import io.mockk.confirmVerified
 import io.mockk.mockk
 import io.mockk.verify
@@ -31,7 +31,7 @@ class CommandBusImplTest {
         val receivedUserCommands = mutableListOf<UserCommand>()
         val receivedAnotherCommands = mutableListOf<AnotherCommand>()
 
-        val messageBus = localMessageBus()
+        val messageBus = newMessageBusWithLocalAdapter()
         val aggregateHandler = mockk<AggregateHandler>()
         val commandBus = newCommandBus(messageBus)
         val UserID = AggregateID.randomUUID()
@@ -86,13 +86,13 @@ class CommandBusImplTest {
     @Test
     fun shouldAddCommandHandler() {
 
-        val messageBus = localMessageBus()
+        val messageBus = newMessageBusWithLocalAdapter()
         val commandBus = newCommandBus(messageBus)
         val userID = newAggregateID()
         val aggregateHandler = mockk<AggregateHandler>(relaxed = true)
         val aggregateFactory = mockk<UserAggregateFactory>(relaxed = true)
 
-        commandBus.RegisterAggregate(aggregateHandler, aggregateFactory)
+        commandBus.registerAggregate(aggregateHandler, aggregateFactory)
         commandBus.publish(AddUser(userID))
 
         verify { aggregateFactory.create(userID) }

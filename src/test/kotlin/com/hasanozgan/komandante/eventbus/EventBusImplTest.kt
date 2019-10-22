@@ -3,7 +3,7 @@ package com.hasanozgan.komandante.eventbus
 import com.hasanozgan.examples.bankaccount.MessageSent
 import com.hasanozgan.examples.bankaccount.NotificationEvent
 import com.hasanozgan.komandante.*
-import com.hasanozgan.komandante.messagebus.localMessageBus
+import com.hasanozgan.komandante.messagebus.newMessageBusWithLocalAdapter
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual
 import org.junit.BeforeClass
@@ -23,7 +23,7 @@ class EventBusImplTest {
         val receivedAnotherEvents = mutableListOf<AnotherEventCalled>()
         val receivedEventHandlerEvents = mutableListOf<Event>()
 
-        val messageBus = localMessageBus()
+        val messageBus = newMessageBusWithLocalAdapter()
         val eventBus = newEventBus(messageBus)
         val UserID = AggregateID.randomUUID()
         val events = listOf(
@@ -93,7 +93,7 @@ class EventBusImplTest {
 
     @Test
     fun shouldAddEventHandlerWithError() {
-        val messageBus = localMessageBus()
+        val messageBus = newMessageBusWithLocalAdapter()
         val localBus = newEventBus(messageBus)
         val dummyException = Exception("dummy exception")
         localBus.addHandler(object : EventHandler<NotificationEvent> {
