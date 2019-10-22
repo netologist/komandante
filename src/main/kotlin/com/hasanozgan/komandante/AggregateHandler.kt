@@ -9,12 +9,10 @@ import arrow.effects.extensions.io.monad.binding
 import arrow.effects.fix
 import com.hasanozgan.komandante.eventbus.EventBus
 
-class AggregateHandler(private val store: EventStore, private val bus: EventBus, private val aggregateFactory: AggregateFactory) {
-    fun load(aggregateID: AggregateID): Try<Aggregate> {
-        val aggregate = aggregateFactory.create(aggregateID)
-
+class AggregateHandler(private val store: EventStore, private val bus: EventBus) {
+    fun load(aggregate: Aggregate): Try<Aggregate> {
         return binding {
-            val (events) = store.load(aggregateID)
+            val (events) = store.load(aggregate.id)
             events.map { event -> aggregate.store(event) }.foldLeft(Try { aggregate }, { _, c ->
                 return@foldLeft when (c) {
                     is Failure -> Failure(c.exception)

@@ -7,10 +7,11 @@ import arrow.core.extensions.`try`.monad.binding
 import arrow.data.Invalid
 import arrow.data.Valid
 
-class CommandHandler(val aggregateHandler: AggregateHandler) {
+class CommandHandler(val aggregateHandler: AggregateHandler, val aggregateFactory: AggregateFactory) {
     fun handle(command: Command): Try<Event> {
         return binding {
-            val (aggregate) = aggregateHandler.load(command.aggregateID)
+            val currentAggregate = aggregateFactory.create(command.aggregateID)
+            val (aggregate) = aggregateHandler.load(currentAggregate)
             val commandResult = aggregate.handle(command)
             val (event) = when (commandResult) {
                 is Valid -> Success(commandResult.a)
