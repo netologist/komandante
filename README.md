@@ -18,7 +18,7 @@ val eventBus = newEventBus(messageBus)
 val eventStore = createExposedEventStore()
 val aggregateHandler = AggregateHandler(eventStore, eventBus)
 
-commandBus.registerAggregateFactory(BankAccountAggregateFactory())
+commandBus.RegisterAggregate(aggregateHandler, BankAccountAggregateFactory())
 commandBus.subscribe<NotificationCommand> {
     println("SAGA COMMAND: ${it}")
 }
