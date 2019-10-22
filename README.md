@@ -105,7 +105,9 @@ class BankAccountAggregate(override var id: AggregateID) : Aggregate {
         }
     }
 }
-
+```
+### Root Aggregate Factory
+```kotlin
 class BankAccountAggregateFactory : AggregateFactory<BankAccountCommand, BankAccountEvent> {
     override fun create(aggregateID: AggregateID): Aggregate {
         return BankAccountAggregate(aggregateID)
