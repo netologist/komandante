@@ -49,7 +49,7 @@ class BankAccountAggregate(override var id: AggregateID) : Aggregate {
     }
 }
 
-class BankAccountAggregateFactory : AggregateFactory {
+class BankAccountAggregateFactory : AggregateFactory<BankAccountCommand, BankAccountEvent> {
     override fun create(aggregateID: AggregateID): Aggregate {
         return BankAccountAggregate(aggregateID)
     }

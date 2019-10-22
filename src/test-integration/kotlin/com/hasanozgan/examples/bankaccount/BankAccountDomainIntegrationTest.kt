@@ -4,7 +4,6 @@ import arrow.effects.fix
 import com.hasanozgan.examples.bankaccount.BankAccounts.balance
 import com.hasanozgan.examples.bankaccount.BankAccounts.owner
 import com.hasanozgan.komandante.AggregateHandler
-import com.hasanozgan.komandante.CommandHandler
 import com.hasanozgan.komandante.Event
 import com.hasanozgan.komandante.commandbus.newCommandBus
 import com.hasanozgan.komandante.eventbus.newEventBus
@@ -28,10 +27,11 @@ class BankAccountDomainIntegrationTest {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     val accountID = newAggregateID()
-    val eventStore = createExposedEventStore()
     val messageBus = localMessageBus()
-    val eventBus = newEventBus(messageBus)
     val commandBus = newCommandBus(messageBus)
+    val eventBus = newEventBus(messageBus)
+    val eventStore = createExposedEventStore()
+    val aggregateHandler = AggregateHandler(eventStore, eventBus)
 
     @BeforeTest
     fun prepare() {
@@ -41,33 +41,9 @@ class BankAccountDomainIntegrationTest {
             SchemaUtils.create(Events, BankAccounts)
             commit()
         }
-/*
-    val messageBus = localMessageBus()
-    val commandBus = newCommandBus(messageBus)
-    val eventBus = newEventBus(messageBus)
-    val eventStore = createExposedEventStore()
 
-    val aggregateHandler = AggregateHandler(eventStore, eventBus)
-    val commandHandler CommandHandler(aggregateHandler)
-    val commandBus = newCommandBus(messageBus, commandHandler)
-
-    commandBus.registerAggregateFactory(BankAccountAggregateFactory())
-    commandBus.subscribe<NotificationCommand> {
-        println("SAGA COMMAND: ${it}")
-    }
-
-    val bankAccountProjector = BankAccountProjector()
-    val projectorEventHandler = ProjectorEventHandler(bankAccountProjector, commandBus)
-    eventBus.addHandler(projectorEventHandler)
-
-    val bankAccountWorkflow = BankAccountWorkflow()
-    val sagaEventHandler = SagaEventHandler(bankAccountWorkflow, commandBus)
-    eventBus.addHandler(sagaEventHandler)
-*/
         // CQRS Setup
-        val bankAccountAggregateHandler = AggregateHandler(eventStore, eventBus)
-        val bankAccountCommandHandler = CommandHandler(bankAccountAggregateHandler, BankAccountAggregateFactory())
-        commandBus.addHandler(BankAccountCommand::class.java, bankAccountCommandHandler, { logger.error(it.message) })
+        commandBus.RegisterAggregate(aggregateHandler, BankAccountAggregateFactory())
         commandBus.subscribe<NotificationCommand> {
             println("SAGA COMMAND: ${it}")
         }

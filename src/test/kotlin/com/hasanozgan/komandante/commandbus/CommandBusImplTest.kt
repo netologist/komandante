@@ -1,10 +1,8 @@
 package com.hasanozgan.komandante.commandbus
 
-import com.hasanozgan.komandante.AggregateID
-import com.hasanozgan.komandante.Command
-import com.hasanozgan.komandante.CommandHandler
+import com.hasanozgan.examples.bankaccount.BankAccountAggregate
+import com.hasanozgan.komandante.*
 import com.hasanozgan.komandante.messagebus.localMessageBus
-import com.hasanozgan.komandante.newAggregateID
 import io.mockk.confirmVerified
 import io.mockk.mockk
 import io.mockk.verify
@@ -13,6 +11,7 @@ import org.hamcrest.core.IsEqual
 import org.junit.BeforeClass
 import org.junit.Test
 
+sealed class UserEvent(override val aggregateID: AggregateID) : Event()
 sealed class UserCommand(override val aggregateID: AggregateID) : Command()
 
 data class AddUser(val userID: AggregateID) : UserCommand(userID)
@@ -20,6 +19,11 @@ data class RemoveUser(val userID: AggregateID) : UserCommand(userID)
 data class ChangeUserAddress(val userID: AggregateID) : UserCommand(userID)
 data class AnotherCommand(override val aggregateID: AggregateID) : Command()
 
+class UserAggregateFactory : AggregateFactory<UserCommand, UserEvent> {
+    override fun create(aggregateID: AggregateID): Aggregate {
+        return BankAccountAggregate(aggregateID)
+    }
+}
 
 class CommandBusImplTest {
     companion object {
@@ -28,6 +32,7 @@ class CommandBusImplTest {
         val receivedAnotherCommands = mutableListOf<AnotherCommand>()
 
         val messageBus = localMessageBus()
+        val aggregateHandler = mockk<AggregateHandler>()
         val commandBus = newCommandBus(messageBus)
         val UserID = AggregateID.randomUUID()
         val commands = listOf(
@@ -80,15 +85,17 @@ class CommandBusImplTest {
 
     @Test
     fun shouldAddCommandHandler() {
+
         val messageBus = localMessageBus()
         val commandBus = newCommandBus(messageBus)
         val userID = newAggregateID()
-        val commandHandler = mockk<CommandHandler>(relaxed = true)
+        val aggregateHandler = mockk<AggregateHandler>(relaxed = true)
+        val aggregateFactory = mockk<UserAggregateFactory>(relaxed = true)
 
-        commandBus.addHandler(UserCommand::class.java, commandHandler)
+        commandBus.RegisterAggregate(aggregateHandler, aggregateFactory)
         commandBus.publish(AddUser(userID))
 
-        verify { commandHandler.handle(AddUser(userID)) }
-        confirmVerified(commandHandler)
+        verify { aggregateFactory.create(userID) }
+        confirmVerified(aggregateFactory)
     }
 }

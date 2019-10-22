@@ -7,7 +7,7 @@ import arrow.core.extensions.`try`.monad.binding
 import arrow.data.Invalid
 import arrow.data.Valid
 
-class CommandHandler(val aggregateHandler: AggregateHandler, val aggregateFactory: AggregateFactory) {
+class CommandHandler(val aggregateHandler: AggregateHandler, val aggregateFactory: AggregateFactory<*, *>) {
     fun handle(command: Command): Try<Event> {
         return binding {
             val currentAggregate = aggregateFactory.create(command.aggregateID)
