@@ -63,45 +63,43 @@ data class MessageSent(val messageID: AggregateID, val message: String) : Notifi
 ### Root Aggregate
 
 ```kotlin
-class BankAccountAggregate(override var id: AggregateID) : Aggregate {
+class BankAccountAggregate(override var id: AggregateID) : Aggregate() {
     var owner: String = "not/assigned"
     var balance: Double = 0.0
 
-    override var events: MutableList<Event> = mutableListOf()
-    override var version: Int = 0
-
-    override fun apply(event: Event): Try<Event> {
-        when (event) {
-            is AccountCreated -> {
-                this.owner = event.owner
-            }
-            is DepositPerformed ->
-                this.balance = this.balance.plus(event.amount)
-            is OwnerChanged -> {
-                this.owner = event.owner
-            }
-            is WithdrawalPerformed ->
-                this.balance = this.balance.minus(event.amount)
-        }
-        return Success(event)
+    fun handle(command: CreateAccount): Validated<DomainError, Event> {
+        return Valid(AccountCreated(command.aggregateID, command.owner))
     }
 
-    override fun handle(command: Command): Validated<DomainError, Event> {
-        return when (command) {
-            is CreateAccount ->
-                Valid(AccountCreated(command.aggregateID, command.owner))
-            is PerformDeposit ->
-                return Valid(DepositPerformed(command.aggregateID, command.amount))
-            is ChangeOwner ->
-                Valid(OwnerChanged(command.aggregateID, command.owner))
-            is PerformWithdrawal -> {
-                if (balance < command.amount) {
-                    return Invalid(InsufficientBalanceError)
-                }
-                Valid(WithdrawalPerformed(command.aggregateID, command.amount))
-            }
-            else -> Invalid(UnknownCommandError)
+    fun handle(command: PerformDeposit): Validated<DomainError, Event> {
+        return Valid(DepositPerformed(command.aggregateID, command.amount))
+    }
+
+    fun handle(command: ChangeOwner): Validated<DomainError, Event> {
+        return Valid(OwnerChanged(command.aggregateID, command.owner))
+    }
+
+    fun handle(command: PerformWithdrawal): Validated<DomainError, Event> {
+        if (balance < command.amount) {
+            return Invalid(InsufficientBalanceError)
         }
+        return Valid(WithdrawalPerformed(command.aggregateID, command.amount))
+    }
+
+    fun apply(event: AccountCreated) {
+        this.owner = event.owner
+    }
+
+    fun apply(event: OwnerChanged) {
+        this.owner = event.owner
+    }
+
+    fun apply(event: DepositPerformed) {
+        this.balance = this.balance.plus(event.amount)
+    }
+
+    fun apply(event: WithdrawalPerformed) {
+        this.balance = this.balance.minus(event.amount)
     }
 }
 ```

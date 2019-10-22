@@ -12,7 +12,7 @@ class CommandHandler(val aggregateHandler: AggregateHandler, val aggregateFactor
         return binding {
             val currentAggregate = aggregateFactory.create(command.aggregateID)
             val (aggregate) = aggregateHandler.load(currentAggregate)
-            val commandResult = aggregate.handle(command)
+            val commandResult = aggregate.invokeHandle(command)
             val (event) = when (commandResult) {
                 is Valid -> Success(commandResult.a)
                 is Invalid -> Failure(commandResult.e)

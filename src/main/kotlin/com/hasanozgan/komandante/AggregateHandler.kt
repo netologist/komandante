@@ -1,8 +1,6 @@
 package com.hasanozgan.komandante
 
-import arrow.core.Failure
-import arrow.core.Success
-import arrow.core.Try
+import arrow.core.*
 import arrow.data.extensions.list.foldable.foldLeft
 import arrow.effects.extensions.io.applicativeError.handleError
 import arrow.effects.extensions.io.monad.binding
@@ -37,10 +35,10 @@ class AggregateHandler(private val store: EventStore, private val bus: EventBus)
     }
 
     private fun applyEvents(aggregate: Aggregate, events: EventList): Try<Aggregate> {
-        return events.map { event -> aggregate.apply(event) }.foldLeft(Try { aggregate }, { _, c ->
+        return events.map { event -> aggregate.invokeApply(event) }.foldLeft(Try { aggregate }, { _, c ->
             return@foldLeft when (c) {
-                is Failure -> Failure(c.exception)
-                is Success -> Success(aggregate)
+                is Some -> Failure(c.t)
+                is None -> Success(aggregate)
             }
         })
     }
