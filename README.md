@@ -17,7 +17,6 @@ val commandBus = newCommandBus(messageBus)
 val eventBus = newEventBus(messageBus)
 val eventStore = createExposedEventStore()
 val aggregateHandler = AggregateHandler(eventStore, eventBus)
-val commandBus = newCommandBus(messageBus)
 
 commandBus.registerAggregateFactory(BankAccountAggregateFactory())
 commandBus.subscribe<NotificationCommand> {
@@ -106,11 +105,112 @@ class BankAccountAggregate(override var id: AggregateID) : Aggregate {
     }
 }
 ```
+
 ### Root Aggregate Factory
 ```kotlin
 class BankAccountAggregateFactory : AggregateFactory<BankAccountCommand, BankAccountEvent> {
     override fun create(aggregateID: AggregateID): Aggregate {
         return BankAccountAggregate(aggregateID)
+    }
+}
+```
+
+### Projector Event Handler
+```kotlin
+class BankAccountProjector : Projector<BankAccountEvent> {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    override fun <T : Event> project(event: T): Option<Command> {
+        transaction {
+            val repository = BankAccounts.select { aggregateID.eq(event.aggregateID) }
+
+            when (event) {
+                is AccountCreated ->
+                    if (repository.empty()) {
+                        BankAccounts.insert {
+                            it[aggregateID] = event.aggregateID
+                            it[owner] = event.owner
+                            it[balance] = 0.0
+                            it[updatedOn] = DateTime.now()
+                            it[version] = event.version
+                        }
+                        commit()
+                    } else {
+                        println(DomainError("account is created before"))
+                    }
+
+
+                is DepositPerformed ->
+                    repository
+                            .filterNot {
+                                it[version] >= event.version
+                            }
+                            .forEach { row ->
+                                BankAccounts.update({ aggregateID.eq(event.aggregateID) }, 1, {
+                                    it[balance] = row[balance].plus(event.amount)
+                                    it[updatedOn] = DateTime.now()
+                                    it[version] = event.version
+                                })
+                                commit()
+                            }
+
+
+                is OwnerChanged ->
+                    repository
+                            .filterNot {
+                                it[version] >= event.version
+                            }
+                            .forEach {
+                                BankAccounts.update({ aggregateID.eq(event.aggregateID) }, 1, {
+                                    it[owner] = event.owner
+                                    it[updatedOn] = DateTime.now()
+                                    it[version] = event.version
+                                })
+                                commit()
+                            }
+
+
+                is WithdrawalPerformed ->
+                    repository
+                            .filterNot {
+                                it[version] >= event.version
+                            }
+                            .forEach { row ->
+                                BankAccounts.update({ aggregateID.eq(event.aggregateID) }, 1, {
+                                    it[balance] = row[balance].minus(event.amount)
+                                    it[updatedOn] = DateTime.now()
+                                    it[version] = event.version
+                                })
+                                commit()
+                            }
+
+                else ->
+                    println(DomainError("Event ${event} is not projected"))
+            }
+        }
+        return None
+    }
+}
+```
+
+### Saga (Workflow) Event Handler
+```kotlin
+class BankAccountWorkflow : Workflow<BankAccountEvent> {
+    override fun <T : Event> run(event: T): List<Command> {
+        when (event) {
+            is AccountCreated ->
+                return listOf(SendMessage("account created ${event.owner} for ${event.aggregateID}"))
+
+            is DepositPerformed ->
+                return listOf(SendMessage("${event.amount} deposit performed for ${event.aggregateID}"))
+
+            is OwnerChanged ->
+                return listOf(SendMessage("${event.owner} owner changed for ${event.aggregateID}"))
+
+            is WithdrawalPerformed ->
+                return listOf(SendMessage("${event.amount} withdrawal performed for ${event.aggregateID}"))
+        }
+        return emptyList()
     }
 }
 ```
