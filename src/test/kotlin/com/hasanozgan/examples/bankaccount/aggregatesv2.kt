@@ -5,7 +5,7 @@ import arrow.data.Valid
 import arrow.data.Validated
 import com.hasanozgan.komandante.*
 
-class BankAccountAggregate(override var id: AggregateID) : Aggregate() {
+class BankAccountAggregateV2(override var id: AggregateID) : Aggregate() {
     var owner: String = "not/assigned"
     var balance: Double = 0.0
 
@@ -45,8 +45,8 @@ class BankAccountAggregate(override var id: AggregateID) : Aggregate() {
     }
 }
 
-class BankAccountAggregateFactory : AggregateFactory<BankAccountCommand, BankAccountEvent> {
+class BankAccountAggregateFactoryV2 : AggregateFactory<BankAccountCommand, BankAccountEvent> {
     override fun create(aggregateID: AggregateID): Aggregate {
-        return BankAccountAggregate(aggregateID)
+        return BankAccountAggregateV2(aggregateID)
     }
 }

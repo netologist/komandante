@@ -1,6 +1,6 @@
 package com.hasanozgan.komandante.commandbus
 
-import com.hasanozgan.examples.bankaccount.BankAccountAggregate
+import com.hasanozgan.examples.bankaccount.BankAccountAggregateV2
 import com.hasanozgan.komandante.*
 import com.hasanozgan.komandante.messagebus.newMessageBusWithLocalAdapter
 import io.mockk.confirmVerified
@@ -21,7 +21,7 @@ data class AnotherCommand(override val aggregateID: AggregateID) : Command()
 
 class UserAggregateFactory : AggregateFactory<UserCommand, UserEvent> {
     override fun create(aggregateID: AggregateID): Aggregate {
-        return BankAccountAggregate(aggregateID)
+        return BankAccountAggregateV2(aggregateID)
     }
 }
 

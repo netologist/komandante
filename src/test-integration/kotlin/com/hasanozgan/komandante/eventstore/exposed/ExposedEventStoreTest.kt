@@ -3,8 +3,8 @@ package com.hasanozgan.komandante.eventstore.exposed
 import arrow.effects.fix
 import com.hasanozgan.examples.bankaccount.AccountCreated
 import com.hasanozgan.examples.bankaccount.DepositPerformed
-import com.hasanozgan.komandante.eventstore.newEventStoreWithExposedAdapter
 import com.hasanozgan.komandante.eventstore.exposed.dao.Events
+import com.hasanozgan.komandante.eventstore.newEventStoreWithExposedAdapter
 import com.hasanozgan.komandante.newAggregateID
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual

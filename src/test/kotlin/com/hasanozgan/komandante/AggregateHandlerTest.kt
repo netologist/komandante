@@ -29,7 +29,7 @@ class AggregateHandlerTest {
             )
         }
 
-        val aggregateFactory = BankAccountAggregateFactory()
+        val aggregateFactory = BankAccountAggregateFactoryV2()
         val aggregateHandler = AggregateHandler(mockEventStore, mockEventBus)
 
         val bankAccountAggregate = aggregateFactory.create(accountID)
@@ -38,7 +38,7 @@ class AggregateHandlerTest {
         assertThat(result.isSuccess(), IsEqual(true))
 
         val accepted = result as Success
-        val aggregate = accepted.value as BankAccountAggregate
+        val aggregate = accepted.value as BankAccountAggregateV2
 
         assertThat("tsubasa", IsEqual(aggregate.owner))
 
@@ -62,7 +62,7 @@ class AggregateHandlerTest {
             every { mockEventBus.publish(event) } returns IO.invoke { event }
         }
 
-        val aggregateFactory = BankAccountAggregateFactory()
+        val aggregateFactory = BankAccountAggregateFactoryV2()
         val aggregateHandler = AggregateHandler(mockEventStore, mockEventBus)
         val aggregate = aggregateFactory.create(accountID)
         aggregate.events = events.toMutableList()
@@ -71,7 +71,7 @@ class AggregateHandlerTest {
 
         assertTrue(maybeSaved.isSuccess())
 
-        val bankAccount = (maybeSaved as Success).value as BankAccountAggregate
+        val bankAccount = (maybeSaved as Success).value as BankAccountAggregateV2
 
         assertThat("totoro", IsEqual(bankAccount.owner))
         assertThat(20.0, IsEqual(bankAccount.balance))
@@ -91,7 +91,7 @@ class AggregateHandlerTest {
         )
         every { mockEventStore.save(events, version) } returns IO.raiseError(EventListEmptyError)
 
-        val aggregateFactory = BankAccountAggregateFactory()
+        val aggregateFactory = BankAccountAggregateFactoryV2()
         val aggregateHandler = AggregateHandler(mockEventStore, mockEventBus)
         val aggregate = aggregateFactory.create(accountID)
         aggregate.events = events.toMutableList()

@@ -9,8 +9,8 @@ import com.hasanozgan.komandante.commandbus.newCommandBus
 import com.hasanozgan.komandante.eventbus.newEventBus
 import com.hasanozgan.komandante.eventhandler.ProjectorEventHandler
 import com.hasanozgan.komandante.eventhandler.SagaEventHandler
-import com.hasanozgan.komandante.eventstore.newEventStoreWithExposedAdapter
 import com.hasanozgan.komandante.eventstore.exposed.dao.Events
+import com.hasanozgan.komandante.eventstore.newEventStoreWithExposedAdapter
 import com.hasanozgan.komandante.messagebus.newMessageBusWithLocalAdapter
 import com.hasanozgan.komandante.newAggregateID
 import org.hamcrest.MatcherAssert.assertThat
@@ -43,7 +43,7 @@ class BankAccountDomainIntegrationTest {
         }
 
         // CQRS Setup
-        commandBus.registerAggregate(aggregateHandler, BankAccountAggregateFactory())
+        commandBus.registerAggregate(aggregateHandler, BankAccountAggregateFactoryV2())
         commandBus.subscribe<NotificationCommand> {
             println("SAGA COMMAND: ${it}")
         }

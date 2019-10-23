@@ -6,9 +6,9 @@ import com.hasanozgan.komandante.AggregateID
 import com.hasanozgan.komandante.Event
 import com.hasanozgan.komandante.EventList
 import com.hasanozgan.komandante.EventStore
-import com.hasanozgan.komandante.eventstore.toTimestamp
 import com.hasanozgan.komandante.eventstore.exposed.CustomExclusionStrategy
 import com.hasanozgan.komandante.eventstore.forceUpdateAggregateID
+import com.hasanozgan.komandante.eventstore.toTimestamp
 import org.joda.time.DateTime
 import java.util.*
 import javax.sql.DataSource

@@ -1,6 +1,9 @@
 package com.hasanozgan.komandante
 
-import arrow.core.*
+import arrow.core.None
+import arrow.core.Option
+import arrow.core.Some
+import arrow.core.Try
 import arrow.data.Invalid
 import arrow.data.Valid
 import arrow.data.Validated
@@ -19,6 +22,14 @@ abstract class Aggregate {
     var events: MutableList<Event> = mutableListOf()
     var version: Int = 0
 
+    open fun apply(event: Event): Option<DomainError> {
+        return Some(UnknownEventError)
+    }
+
+    open fun handle(command: Command): Validated<DomainError, Event> {
+        return Invalid(UnknownCommandError)
+    }
+
     fun store(event: Event): Try<Event> {
         return when (val applied = invokeApply(event)) {
             is Some -> Try.raiseError(applied.t)
@@ -32,26 +43,28 @@ abstract class Aggregate {
     }
 
     fun <T : Command> invokeHandle(command: T): Validated<DomainError, Event> {
-        val method = getMethod("handle", command) ?: return Invalid(UnknownCommandError)
-        return when (val invoke = method.invoke(this, command)) {
-            is Valid<*> -> Valid(invoke.a as Event)
-            is Invalid<*> -> Invalid(invoke.e as DomainError)
+        val method = getMethod("handle", command) ?: return handle(command)
+        return when (val result = method.invoke(this, command)) {
+            is Valid<*> -> Valid(result.a as Event)
+            is Invalid<*> -> Invalid(result.e as DomainError)
             else -> Invalid(UnknownCommandError)
         }
     }
 
     fun invokeApply(event: Event): Option<DomainError> {
-        val method = getMethod("apply", event)  ?: return Some(UnknownCommandError)
+        val method = getMethod("apply", event) ?: return apply(event)
 
-        method.invoke(this, event)
-        return None
+        return when (val result = method.invoke(this, event)) {
+            is Some<*> -> Some(result.t as DomainError)
+            else -> None
+        }
     }
 
     fun incrementVersion() {
         version++
     }
 
-    private fun <T : Message> getMethod(name:String, command: T): Method? {
+    private fun <T : Message> getMethod(name: String, command: T): Method? {
         return this.javaClass.methods.filter {
             it.name.equals(name) && it.parameterTypes.toList().exists {
                 it.equals(command.javaClass)
