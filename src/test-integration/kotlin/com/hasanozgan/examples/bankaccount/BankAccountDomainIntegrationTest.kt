@@ -48,11 +48,11 @@ class BankAccountDomainIntegrationTest {
             println("SAGA COMMAND: ${it}")
         }
 
-        val bankAccountProjector = BankAccountProjector()
+        val bankAccountProjector = BankAccountProjectorV2()
         val projectorEventHandler = ProjectorEventHandler(bankAccountProjector, commandBus)
         eventBus.addHandler(projectorEventHandler)
 
-        val bankAccountWorkflow = BankAccountWorkflow()
+        val bankAccountWorkflow = BankAccountWorkflowV2()
         val sagaEventHandler = SagaEventHandler(bankAccountWorkflow, commandBus)
         eventBus.addHandler(sagaEventHandler)
 

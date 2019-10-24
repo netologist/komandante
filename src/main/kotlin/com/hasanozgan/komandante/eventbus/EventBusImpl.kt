@@ -39,10 +39,10 @@ class EventBusImpl internal constructor(val messageBus: MessageBus) : EventBus {
 
         if (eventHandler.handlerType == "projector") {
             val projectorEventHandler = eventHandler as ProjectorEventHandler
-            clazzTypeName = (projectorEventHandler.projector.javaClass.genericInterfaces[0] as ParameterizedType).actualTypeArguments[0]
+            clazzTypeName = (projectorEventHandler.projector.javaClass.genericSuperclass as ParameterizedType).actualTypeArguments[0]
         } else if (eventHandler.handlerType == "saga") {
             val sagaEventHandler = eventHandler as SagaEventHandler
-            clazzTypeName = (sagaEventHandler.workflow.javaClass.genericInterfaces[0] as ParameterizedType).actualTypeArguments[0]
+            clazzTypeName = (sagaEventHandler.workflow.javaClass.genericSuperclass as ParameterizedType).actualTypeArguments[0]
         } else {
             clazzTypeName = (eventHandler.javaClass.genericInterfaces[0] as ParameterizedType).actualTypeArguments[0]
         }

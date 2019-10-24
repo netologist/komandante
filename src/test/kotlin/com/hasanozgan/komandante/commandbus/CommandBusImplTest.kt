@@ -85,7 +85,6 @@ class CommandBusImplTest {
 
     @Test
     fun shouldAddCommandHandler() {
-
         val messageBus = newMessageBusWithLocalAdapter()
         val commandBus = newCommandBus(messageBus)
         val userID = newAggregateID()

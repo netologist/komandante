@@ -15,10 +15,10 @@ import org.jetbrains.exposed.sql.update
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
-class BankAccountProjector : Projector<BankAccountEvent> {
+class BankAccountProjectorV1 : Projector<BankAccountEvent>() {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun <T : Event> project(event: T): Option<Command> {
+    override fun project(event: Event): Option<Command> {
         transaction {
             val repository = BankAccounts.select { aggregateID.eq(event.aggregateID) }
 

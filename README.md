@@ -116,77 +116,82 @@ class BankAccountAggregateFactory : AggregateFactory<BankAccountCommand, BankAcc
 ### Projector Event Handler
 ```kotlin
 class BankAccountProjector : Projector<BankAccountEvent> {
-    private val logger = LoggerFactory.getLogger(javaClass)
+ private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun <T : Event> project(event: T): Option<Command> {
+    override fun project(event: Event): Option<Command> {
+        println(DomainError("Event ${event} is not projected"))
+        return none()
+    }
+
+    fun project(event: AccountCreated) {
         transaction {
-            val repository = BankAccounts.select { aggregateID.eq(event.aggregateID) }
-
-            when (event) {
-                is AccountCreated ->
-                    if (repository.empty()) {
-                        BankAccounts.insert {
-                            it[aggregateID] = event.aggregateID
-                            it[owner] = event.owner
-                            it[balance] = 0.0
-                            it[updatedOn] = DateTime.now()
-                            it[version] = event.version
-                        }
-                        commit()
-                    } else {
-                        println(DomainError("account is created before"))
-                    }
-
-
-                is DepositPerformed ->
-                    repository
-                            .filterNot {
-                                it[version] >= event.version
-                            }
-                            .forEach { row ->
-                                BankAccounts.update({ aggregateID.eq(event.aggregateID) }, 1, {
-                                    it[balance] = row[balance].plus(event.amount)
-                                    it[updatedOn] = DateTime.now()
-                                    it[version] = event.version
-                                })
-                                commit()
-                            }
-
-
-                is OwnerChanged ->
-                    repository
-                            .filterNot {
-                                it[version] >= event.version
-                            }
-                            .forEach {
-                                BankAccounts.update({ aggregateID.eq(event.aggregateID) }, 1, {
-                                    it[owner] = event.owner
-                                    it[updatedOn] = DateTime.now()
-                                    it[version] = event.version
-                                })
-                                commit()
-                            }
-
-
-                is WithdrawalPerformed ->
-                    repository
-                            .filterNot {
-                                it[version] >= event.version
-                            }
-                            .forEach { row ->
-                                BankAccounts.update({ aggregateID.eq(event.aggregateID) }, 1, {
-                                    it[balance] = row[balance].minus(event.amount)
-                                    it[updatedOn] = DateTime.now()
-                                    it[version] = event.version
-                                })
-                                commit()
-                            }
-
-                else ->
-                    println(DomainError("Event ${event} is not projected"))
+            val query = BankAccounts.select { aggregateID.eq(event.aggregateID) }
+            if (query.empty()) {
+                BankAccounts.insert {
+                    it[aggregateID] = event.aggregateID
+                    it[owner] = event.owner
+                    it[balance] = 0.0
+                    it[updatedOn] = DateTime.now()
+                    it[version] = event.version
+                }
+                commit()
+            } else {
+                logger.error("account is created before")
             }
         }
-        return None
+    }
+
+    fun project(event: DepositPerformed) {
+        transaction {
+            BankAccounts.select { aggregateID.eq(event.aggregateID) }
+                    .filterNot {
+                        it[version] >= event.version
+                    }
+                    .forEach { row ->
+                        BankAccounts.update({ aggregateID.eq(event.aggregateID) }, 1, {
+                            it[balance] = row[balance].plus(event.amount)
+                            it[updatedOn] = DateTime.now()
+                            it[version] = event.version
+                        })
+                        commit()
+                    }
+        }
+    }
+
+    fun project(event: OwnerChanged) {
+        transaction {
+            BankAccounts.select { aggregateID.eq(event.aggregateID) }
+                    .filterNot {
+                        it[version] >= event.version
+                    }
+                    .forEach {
+                        BankAccounts.update({ aggregateID.eq(event.aggregateID) }, 1, {
+                            it[owner] = event.owner
+                            it[updatedOn] = DateTime.now()
+                            it[version] = event.version
+                        })
+                        commit()
+                    }
+        }
+    }
+
+    fun project(event: WithdrawalPerformed): Option<Command> {
+        transaction {
+            BankAccounts.select { aggregateID.eq(event.aggregateID) }
+                    .filterNot {
+                        it[version] >= event.version
+                    }
+                    .forEach { row ->
+                        BankAccounts.update({ aggregateID.eq(event.aggregateID) }, 1, {
+                            it[balance] = row[balance].minus(event.amount)
+                            it[updatedOn] = DateTime.now()
+                            it[version] = event.version
+                        })
+                        commit()
+                    }
+        }
+
+        return none()
     }
 }
 ```
@@ -194,21 +199,20 @@ class BankAccountProjector : Projector<BankAccountEvent> {
 ### Saga (Workflow) Event Handler
 ```kotlin
 class BankAccountWorkflow : Workflow<BankAccountEvent> {
-    override fun <T : Event> run(event: T): List<Command> {
-        when (event) {
-            is AccountCreated ->
-                return listOf(SendMessage("account created ${event.owner} for ${event.aggregateID}"))
+    fun run(event: AccountCreated): List<Command> {
+        return listOf(SendMessage("account created ${event.owner} for ${event.aggregateID}"))
+    }
 
-            is DepositPerformed ->
-                return listOf(SendMessage("${event.amount} deposit performed for ${event.aggregateID}"))
+    fun run(event: DepositPerformed): List<Command> {
+        return listOf(SendMessage("${event.amount} deposit performed for ${event.aggregateID}"))
+    }
 
-            is OwnerChanged ->
-                return listOf(SendMessage("${event.owner} owner changed for ${event.aggregateID}"))
+    fun run(event: OwnerChanged): List<Command> {
+        return listOf(SendMessage("${event.owner} owner changed for ${event.aggregateID}"))
+    }
 
-            is WithdrawalPerformed ->
-                return listOf(SendMessage("${event.amount} withdrawal performed for ${event.aggregateID}"))
-        }
-        return emptyList()
+    fun run(event: WithdrawalPerformed): List<Command> {
+        return listOf(SendMessage("${event.amount} withdrawal performed for ${event.aggregateID}"))
     }
 }
 ```

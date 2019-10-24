@@ -7,8 +7,6 @@ import arrow.core.Try
 import arrow.data.Invalid
 import arrow.data.Valid
 import arrow.data.Validated
-import arrow.data.extensions.list.foldable.exists
-import java.lang.reflect.Method
 import java.util.*
 
 typealias AggregateID = UUID
@@ -43,7 +41,7 @@ abstract class Aggregate {
     }
 
     fun <T : Command> invokeHandle(command: T): Validated<DomainError, Event> {
-        val method = getMethod("handle", command) ?: return handle(command)
+        val method = getMethod(this, "handle", command) ?: return handle(command)
         return when (val result = method.invoke(this, command)) {
             is Valid<*> -> Valid(result.a as Event)
             is Invalid<*> -> Invalid(result.e as DomainError)
@@ -52,7 +50,7 @@ abstract class Aggregate {
     }
 
     fun invokeApply(event: Event): Option<DomainError> {
-        val method = getMethod("apply", event) ?: return apply(event)
+        val method = getMethod(this, "apply", event) ?: return apply(event)
 
         return when (val result = method.invoke(this, event)) {
             is Some<*> -> Some(result.t as DomainError)
@@ -63,13 +61,4 @@ abstract class Aggregate {
     fun incrementVersion() {
         version++
     }
-
-    private fun <T : Message> getMethod(name: String, command: T): Method? {
-        return this.javaClass.methods.filter {
-            it.name.equals(name) && it.parameterTypes.toList().exists {
-                it.equals(command.javaClass)
-            }
-        }.firstOrNull()
-    }
-
 }
