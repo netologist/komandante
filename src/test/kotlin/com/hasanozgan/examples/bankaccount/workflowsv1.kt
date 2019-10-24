@@ -4,8 +4,8 @@ import com.hasanozgan.komandante.Command
 import com.hasanozgan.komandante.Event
 import com.hasanozgan.komandante.Workflow
 
-class BankAccountWorkflow : Workflow<BankAccountEvent> {
-    override fun <T : Event> run(event: T): List<Command> {
+class BankAccountWorkflowV1 : Workflow<BankAccountEvent>() {
+    override fun run(event: Event): List<Command> {
         when (event) {
             is AccountCreated ->
                 return listOf(SendMessage("account created ${event.owner} for ${event.aggregateID}"))

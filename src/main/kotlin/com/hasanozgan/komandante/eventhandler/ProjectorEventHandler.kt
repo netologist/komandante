@@ -15,7 +15,7 @@ class ProjectorEventHandler<T : Event>(val projector: Projector<T>, private val 
         get() = "projector"
 
     override fun <T : Event> handle(event: T) {
-        projector.project(event).map { command ->
+        projector.invokeProject(event).map { command ->
             commandBus.publish(command).handleError {
                 logger.error("commandbus failed: ${command}, error: ${it} in projector event handler")
             }
