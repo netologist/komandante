@@ -15,7 +15,6 @@ fun newMessageBusWithLocalAdapter(): MessageBus = LocalMessageBus()
 
 @Suppress("UNCHECKED_CAST")
 class LocalMessageBus internal constructor() : MessageBus {
-
     private val publisher = PublishSubject.create<Message>()
 
     override fun <T : Message> publish(message: T): IO<T> {
@@ -31,6 +30,11 @@ class LocalMessageBus internal constructor() : MessageBus {
     override fun subscribe(messageListener: MessageListener<Message>) {
         subscribe(messageListener, DefaultErrorHandler)
     }
+
+    override fun <T : Message> iterable(): Iterable<T> {
+        return publisher.blockingNext() as Iterable<T>
+    }
+
 
     override fun subscribe(messageListener: MessageListener<Message>, onError: ErrorHandler) {
         val filterType = getMessageListenerClassTypeName(messageListener)

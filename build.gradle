@@ -12,7 +12,7 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '5.0.0'
 }
 
-def appVersion = "0.1"
+def appVersion = "0.0.2"
 group = 'com.hasanozgan'
 def BUILD_NUMBER = System.getenv('CIRCLE_BUILD_NUM')
 version = "$appVersion.$BUILD_NUMBER"

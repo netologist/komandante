@@ -15,6 +15,10 @@ class EventBusImpl internal constructor(val messageBus: MessageBus) : EventBus {
         return messageBus.publish(message)
     }
 
+    override fun <T : Event> iterable(): Iterable<T> {
+        return messageBus.iterable()
+    }
+
     override fun <T : Event> subscribe(messageListener: MessageListener<in T>) {
         messageBus.subscribeOf<T>(messageListener)
     }

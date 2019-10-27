@@ -8,7 +8,7 @@ import com.hasanozgan.komandante.MessageListener
 
 interface CommandBus {
     fun publish(command: Command): IO<Command>
+    fun <T : Command> iterable(): Iterable<T>
     fun <T : Command> subscribe(messageListener: MessageListener<in T>)
-
     fun <T : Command> registerAggregate(aggregateHandler: AggregateHandler, aggregateFactory: AggregateFactory<T, *>)
 }

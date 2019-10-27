@@ -14,6 +14,11 @@ class CommandBusImpl(val messageBus: MessageBus) : CommandBus {
         return messageBus.publish(command)
     }
 
+    override fun <T : Command> iterable(): Iterable<T> {
+        return messageBus.iterable()
+    }
+
+
     override fun <T : Command> subscribe(messageListener: MessageListener<in T>) {
         messageBus.subscribeOf<T>(messageListener)
     }
