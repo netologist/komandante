@@ -1,13 +1,10 @@
 package com.hasanozgan.komandante
 
-import arrow.core.Failure
 import arrow.effects.IO
 import com.hasanozgan.examples.bankaccount.*
 import com.hasanozgan.komandante.eventbus.EventBus
 import io.mockk.every
 import io.mockk.mockk
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.core.IsEqual
 import org.junit.Test
 
 class CommandHandlerTest {

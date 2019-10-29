@@ -13,12 +13,12 @@ class BankAccountAggregateV2(override var id: AggregateID) : Aggregate() {
         return Valid(AccountCreated(command.aggregateID, command.owner))
     }
 
-    fun handle(command: PerformDeposit): Validated<DomainError, Event> {
-        return Valid(DepositPerformed(command.aggregateID, command.amount))
+    fun handle(command: PerformDeposit): Event {
+        return DepositPerformed(command.aggregateID, command.amount)
     }
 
-    fun handle(command: ChangeOwner): Validated<DomainError, Event> {
-        return Valid(OwnerChanged(command.aggregateID, command.owner))
+    fun handle(command: ChangeOwner): Event {
+        return OwnerChanged(command.aggregateID, command.owner)
     }
 
     fun handle(command: PerformWithdrawal): Validated<DomainError, Event> {

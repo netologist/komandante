@@ -7,6 +7,7 @@ import arrow.data.Invalid
 import arrow.data.Valid
 import arrow.data.Validated
 import org.slf4j.LoggerFactory
+import java.lang.reflect.InvocationTargetException
 import java.util.*
 
 typealias AggregateID = UUID
@@ -41,28 +42,48 @@ abstract class Aggregate {
         }
     }
 
-    //TODO: New Version requirement (CREATE: a task)
-    // version 2 requirement except throw error and handle in your code.
-    // expected return types prototoypes
-    // fun handle(event: Event): Validated<DomainError, Event>
-    // fun handle(event: Event): Validated<DomainError, List<Event>>
-    // fun handle(event: Event): Validated<String, Event>
-    // fun handle(event: Event): Validated<String, List<Event>>
-    // fun handle(event: Event): DomainError?
-    // fun handle(event: Event): Option<DomainError>
-    // fun handle(event: Event): Event?
-    // fun handle(event: Event): Option<Event>
-    // fun handle(event: Event): List<Event>
-    // fun handle(event: Event): throw error
-    // fun handle(event: Event): // ( empty, no return type )
-
     fun <T : Command> invokeHandle(command: T): Validated<DomainError, List<Event>> {
+        try {
+            val method = getMethod(this, "handle", command) ?: return handle(command).map { listOf(it) }
 
-        val method = getMethod(this, "handle", command) ?: return handle(command).map { listOf(it) }
-        return when (val result = method.invoke(this, command)) {
-            is Valid<*> -> Valid(listOf(result.a as Event))
-            is Invalid<*> -> Invalid(result.e as DomainError)
+            val result = method.invoke(this, command)
+            if (result == null) {
+                return Valid(emptyList())
+            }
+            return when (result) {
+                is DomainError -> Invalid(result)
+                is Event -> Valid(listOf(result))
+                is Unit -> Valid(emptyList())
+
+                is List<*> -> Valid(result.map { it as Event })
+                is Some<*> -> toValidatedType(result.t)
+                is None -> Valid(emptyList())
+                is Valid<*> -> toValidatedType(result.a)
+                is Invalid<*> -> Invalid(toDomainError(result.e))
+                else -> Invalid(UnknownCommandError)
+            }
+        } catch (domainError: InvocationTargetException) {
+            return Invalid(DomainError(domainError.targetException.message.orEmpty()))
+        } catch (domainError: InvocationTargetException) {
+            return Invalid(UnknownCommandError)
+        }
+    }
+
+
+    private fun toValidatedType(value: Any?): Validated<DomainError, List<Event>> {
+        return when (value) {
+            is DomainError -> return Invalid(value)
+            is Event -> return Valid(listOf(value))
+            is List<*> -> return Valid(value.map { it as Event })
             else -> Invalid(UnknownCommandError)
+        }
+    }
+
+    private fun toDomainError(value: Any?): DomainError {
+        return when (value) {
+            is String -> DomainError(value)
+            is DomainError -> value
+            else -> UnknownCommandError
         }
     }
 

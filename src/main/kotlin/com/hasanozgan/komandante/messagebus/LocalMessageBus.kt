@@ -5,7 +5,6 @@ import com.hasanozgan.komandante.ErrorHandler
 import com.hasanozgan.komandante.Message
 import com.hasanozgan.komandante.MessageBus
 import com.hasanozgan.komandante.MessageListener
-import io.reactivex.BackpressureStrategy
 import io.reactivex.subjects.PublishSubject
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.reflect
@@ -35,7 +34,6 @@ class LocalMessageBus internal constructor() : MessageBus {
     override fun <T : Message> iterable(): Iterable<T> {
         return publisher.blockingNext() as Iterable<T>
     }
-
 
     override fun subscribe(messageListener: MessageListener<Message>, onError: ErrorHandler) {
         val filterType = getMessageListenerClassTypeName(messageListener)
