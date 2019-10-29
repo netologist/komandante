@@ -11,17 +11,9 @@ class AggregateHandler(private val store: EventStore, private val bus: EventBus)
     fun load(aggregate: Aggregate): Try<Aggregate> {
         return binding {
             val (events) = store.load(aggregate.id)
-            events.map { event -> aggregate.store(event) }.foldLeft(Try { aggregate }, { _, c ->
-                return@foldLeft when (c) {
-                    is Failure -> Failure(c.exception)
-                    is Success -> {
-                        Success(aggregate)
-                    }
-                }
-            })
-        }.handleError {
-            Failure(it)
-        }.fix().unsafeRunSync()
+            events.map { aggregate.store(it) }
+            Success(aggregate)
+        }.handleError { Failure(it) }.fix().unsafeRunSync()
     }
 
     fun save(aggregate: Aggregate): Try<Aggregate> {

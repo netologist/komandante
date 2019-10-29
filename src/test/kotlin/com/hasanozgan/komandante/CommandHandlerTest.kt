@@ -1,7 +1,6 @@
 package com.hasanozgan.komandante
 
 import arrow.core.Failure
-import arrow.core.Success
 import arrow.effects.IO
 import com.hasanozgan.examples.bankaccount.*
 import com.hasanozgan.komandante.eventbus.EventBus
@@ -10,11 +9,10 @@ import io.mockk.mockk
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual
 import org.junit.Test
-import kotlin.test.assertTrue
 
 class CommandHandlerTest {
     @Test
-    fun shouldCommandHandlerReturnAnEvent() {
+    fun shouldCommandHandlerInvokeAggregateHandlerMethod() {
         val mockEventStore = mockk<EventStore>()
         val mockEventBus = mockk<EventBus>()
 
@@ -35,10 +33,7 @@ class CommandHandlerTest {
         val aggregateFactory = BankAccountAggregateFactoryV2()
         val aggregateHandler = AggregateHandler(mockEventStore, mockEventBus)
         val commandHandler = CommandHandler(aggregateHandler, aggregateFactory)
-        val maybeEvent = commandHandler.handle(PerformDeposit(accountID, 15.20))
-
-        assertTrue(maybeEvent.isSuccess())
-        assertThat(DepositPerformed(accountID, 15.20), IsEqual((maybeEvent as Success).value))
+        commandHandler.handle(PerformDeposit(accountID, 15.20))
     }
 
     @Test
@@ -57,14 +52,11 @@ class CommandHandlerTest {
         val aggregateFactory = BankAccountAggregateFactoryV2()
         val aggregateHandler = AggregateHandler(mockEventStore, mockEventBus)
         val commandHandler = CommandHandler(aggregateHandler, aggregateFactory)
-        val maybeEvent = commandHandler.handle(PerformWithdrawal(accountID, 20.10))
-
-        assertTrue(maybeEvent.isFailure())
-        assertThat(InsufficientBalanceError, IsEqual((maybeEvent as Failure).exception))
+        commandHandler.handle(PerformWithdrawal(accountID, 20.10))
     }
 
     @Test
-    fun shouldCommandHandlerReturnAErrorInvalidCommand() {
+    fun shouldNothingEventStoreLoadMethodReturnEmptyList() {
         val mockEventStore = mockk<EventStore>()
         val mockEventBus = mockk<EventBus>()
 
@@ -73,9 +65,6 @@ class CommandHandlerTest {
         val aggregateFactory = BankAccountAggregateFactoryV2()
         val aggregateHandler = AggregateHandler(mockEventStore, mockEventBus)
         val commandHandler = CommandHandler(aggregateHandler, aggregateFactory)
-        val maybeEvent = commandHandler.handle(SendMessage("some command message"))
-
-        assertTrue(maybeEvent.isFailure())
-        assertThat(UnknownCommandError, IsEqual((maybeEvent as Failure).exception))
+        commandHandler.handle(SendMessage("some command message"))
     }
 }

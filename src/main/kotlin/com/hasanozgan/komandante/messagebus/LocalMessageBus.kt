@@ -5,6 +5,7 @@ import com.hasanozgan.komandante.ErrorHandler
 import com.hasanozgan.komandante.Message
 import com.hasanozgan.komandante.MessageBus
 import com.hasanozgan.komandante.MessageListener
+import io.reactivex.BackpressureStrategy
 import io.reactivex.subjects.PublishSubject
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.reflect

@@ -1,26 +1,23 @@
 package com.hasanozgan.komandante
 
-import arrow.core.Failure
-import arrow.core.Success
-import arrow.core.Try
 import arrow.core.extensions.`try`.monad.binding
-import arrow.data.Invalid
-import arrow.data.Valid
+import arrow.core.toOption
+import org.slf4j.LoggerFactory
 
 class CommandHandler(val aggregateHandler: AggregateHandler, val aggregateFactory: AggregateFactory<*, *>) {
-    fun handle(command: Command): Try<Event> {
-        return binding {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    fun handle(command: Command) {
+        binding {
             val currentAggregate = aggregateFactory.create(command.aggregateID)
             val (aggregate) = aggregateHandler.load(currentAggregate)
-            val commandResult = aggregate.invokeHandle(command)
-            val (event) = when (commandResult) {
-                is Valid -> Success(commandResult.a)
-                is Invalid -> Failure(commandResult.e)
-            }
-            val (appliedEvent) = aggregate.store(event)
-            val (stored) = aggregateHandler.save(aggregate).map { appliedEvent }
 
-            stored
+            aggregate.invokeHandle(command).leftMap {
+                logger.error(it.message)
+            }.toList().flatten()
+                    .map { aggregate.store(it) }
+                    .takeIf { it.isNotEmpty() }
+                    .toOption().map { aggregateHandler.save(aggregate) }
         }
     }
 }
