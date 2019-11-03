@@ -45,3 +45,8 @@ out
 
 ### Idea ###
 .idea/
+
+.classpath
+.project
+.settings/
+*.iml
