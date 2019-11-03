@@ -1,5 +1,7 @@
 package com.hasanozgan.examples.bankaccount
 
+import arrow.core.None
+import arrow.core.Option
 import arrow.data.Invalid
 import arrow.data.Valid
 import arrow.data.Validated
@@ -21,6 +23,18 @@ class BankAccountAggregateV2(override var id: AggregateID) : Aggregate() {
         return OwnerChanged(command.aggregateID, command.owner)
     }
 
+    fun handle(command: TransferMoney): Validated<DomainError, List<Event>> {
+        if (balance < command.amount) {
+            return Invalid(InsufficientBalanceError)
+        }
+
+        return Valid(listOf(
+                WithdrawalPerformed(command.from, command.amount),
+                WithdrawalPerformed(command.to, command.amount),
+                MoneyTransfered(command.from, command.to, command.amount))
+        )
+    }
+
     fun handle(command: PerformWithdrawal): Validated<DomainError, Event> {
         if (balance < command.amount) {
             return Invalid(InsufficientBalanceError)
@@ -36,8 +50,9 @@ class BankAccountAggregateV2(override var id: AggregateID) : Aggregate() {
         this.owner = event.owner
     }
 
-    fun apply(event: DepositPerformed) {
+    fun apply(event: DepositPerformed): Option<DomainError> {
         this.balance = this.balance.plus(event.amount)
+        return None
     }
 
     fun apply(event: WithdrawalPerformed) {

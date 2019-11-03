@@ -20,7 +20,11 @@ class AggregateHandler(private val store: EventStore, private val bus: EventBus)
         return binding {
             val (events) = store.save(aggregate.events, aggregate.version)
             applyEvents(aggregate, events).map {
-                it.events.filter { it.version >= aggregate.version }.forEach { bus.publish(it) }
+                it.events.filter {
+                    it.version >= aggregate.version
+                }.forEach {
+                    bus.publish(it)
+                }
                 it
             }
         }.handleError { Failure(it) }.fix().unsafeRunSync()

@@ -26,7 +26,8 @@ import kotlin.test.Test
 class BankAccountDomainIntegrationTest {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    val accountID = newAggregateID()
+    val bobAccountID = newAggregateID()
+    val aliceAccountID = newAggregateID()
     val messageBus = newMessageBusWithLocalAdapter()
     val commandBus = newCommandBus(messageBus)
     val eventBus = newEventBus(messageBus)
@@ -56,33 +57,36 @@ class BankAccountDomainIntegrationTest {
         val sagaEventHandler = SagaEventHandler(bankAccountWorkflow, commandBus)
         eventBus.addHandler(sagaEventHandler)
 
-        commandBus.publish(CreateAccount(accountID, "bob"))
-        commandBus.publish(PerformDeposit(accountID, 10.20))
-        commandBus.publish(ChangeOwner(accountID, "alice"))
-        commandBus.publish(PerformWithdrawal(accountID, 8.20))
+        commandBus.publish(CreateAccount(bobAccountID, "bob"))
+        commandBus.publish(PerformDeposit(bobAccountID, 10.20))
+        commandBus.publish(ChangeOwner(bobAccountID, "alice"))
+        commandBus.publish(PerformWithdrawal(bobAccountID, 8.20))
+        commandBus.publish(TransferMoney(bobAccountID, aliceAccountID, 0.10))
     }
 
     @Test
     fun shouldReturnEventStore4Records() {
         val expectedEventList = listOf(
-                AccountCreated(accountID, "bob"),
-                DepositPerformed(accountID, 10.20),
-                OwnerChanged(accountID, "alice"),
-                WithdrawalPerformed(accountID, 8.20)
+                AccountCreated(bobAccountID, "bob"),
+                DepositPerformed(bobAccountID, 10.20),
+                OwnerChanged(bobAccountID, "alice"),
+                WithdrawalPerformed(bobAccountID, 8.20),
+                WithdrawalPerformed(bobAccountID, 0.10),
+                MoneyTransfered(bobAccountID, aliceAccountID, 0.10)
         ).map { it as Event }
-        val actualEventList = eventStore.load(accountID).fix().unsafeRunSync().toList()
-        assertThat(4, IsEqual(expectedEventList.size))
+        val actualEventList = eventStore.load(bobAccountID).fix().unsafeRunSync().toList()
+        assertThat(actualEventList.size, IsEqual(expectedEventList.size))
         assertThat(actualEventList, IsEqual(expectedEventList))
     }
 
     @Test
     fun shouldReturnBankAccountDomain() {
         transaction {
-            val result = BankAccounts.select { BankAccounts.aggregateID.eq(accountID) }
+            val result = BankAccounts.select { BankAccounts.aggregateID.eq(bobAccountID) }
             assertThat(1, IsEqual(result.count()))
             result.forEach {
                 assertThat("alice", IsEqual(it[owner]))
-                assertThat(2.0, IsEqual(it[balance]))
+                assertThat(1.9, IsEqual(it[balance]))
             }
         }
     }

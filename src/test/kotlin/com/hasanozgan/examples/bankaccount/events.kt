@@ -8,6 +8,7 @@ data class AccountCreated(val accountID: AggregateID, val owner: String) : BankA
 data class DepositPerformed(val accountID: AggregateID, val amount: Double) : BankAccountEvent(accountID)
 data class OwnerChanged(val accountID: AggregateID, val owner: String) : BankAccountEvent(accountID)
 data class WithdrawalPerformed(val accountID: AggregateID, val amount: Double) : BankAccountEvent(accountID)
+data class MoneyTransfered(val sender: AggregateID, val reciever:AggregateID, val amount: Double) : BankAccountEvent(sender)
 
 sealed class NotificationEvent(override val aggregateID: AggregateID) : Event()
 data class MessageSent(val messageID: AggregateID, val message: String) : NotificationEvent(messageID)

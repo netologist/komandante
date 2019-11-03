@@ -19,4 +19,8 @@ class BankAccountWorkflowV2 : Workflow<BankAccountEvent>() {
     fun run(event: WithdrawalPerformed): List<Command> {
         return listOf(SendMessage("${event.amount} withdrawal performed for ${event.aggregateID}"))
     }
+
+    fun project(event: MoneyTransfered): List<Command> {
+        return listOf(PerformDeposit(event.reciever, event.amount))
+    }
 }

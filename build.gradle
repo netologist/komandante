@@ -168,7 +168,7 @@ dependencies {
     implementation "com.zaxxer:HikariCP:$hikariVersion"
 
     // Exposed DB library
-    implementation "org.jetbrains.exposed:exposed:$exposedVersion"
+    api "org.jetbrains.exposed:exposed:$exposedVersion"
 
     // GSON json library
     implementation "com.google.code.gson:gson:$gsonVersion"

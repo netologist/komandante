@@ -1,7 +1,6 @@
 package com.hasanozgan.komandante
 
 import arrow.core.extensions.`try`.monad.binding
-import arrow.core.toOption
 import org.slf4j.LoggerFactory
 
 class CommandHandler(val aggregateHandler: AggregateHandler, val aggregateFactory: AggregateFactory<*, *>) {
@@ -14,10 +13,15 @@ class CommandHandler(val aggregateHandler: AggregateHandler, val aggregateFactor
 
             aggregate.invokeHandle(command).leftMap {
                 logger.error(it.message)
-            }.toList().flatten()
-                    .map { aggregate.store(it) }
-                    .takeIf { it.isNotEmpty() }
-                    .toOption().map { aggregateHandler.save(aggregate) }
+            }.toList().flatten().forEach {
+                if (aggregate.id != it.aggregateID) {
+                    logger.warn("event ${it} is ignored. event's aggregateId is different")
+                } else {
+                    aggregate.store(it);
+                    aggregateHandler.save(aggregate)
+                    logger.debug("event stored ${it}")
+                }
+            }
         }
     }
 }

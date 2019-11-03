@@ -27,19 +27,19 @@ class BankAccountAggregateV1(override var id: AggregateID) : Aggregate() {
         return None
     }
 
-    override fun handle(command: Command): Validated<DomainError, Event> {
+    override fun handle(command: Command): Validated<DomainError, List<Event>> {
         return when (command) {
             is CreateAccount ->
-                Valid(AccountCreated(command.aggregateID, command.owner))
+                Valid(listOf(AccountCreated(command.aggregateID, command.owner)))
             is PerformDeposit ->
-                return Valid(DepositPerformed(command.aggregateID, command.amount))
+                return Valid(listOf(DepositPerformed(command.aggregateID, command.amount)))
             is ChangeOwner ->
-                Valid(OwnerChanged(command.aggregateID, command.owner))
+                Valid(listOf(OwnerChanged(command.aggregateID, command.owner)))
             is PerformWithdrawal -> {
                 if (balance < command.amount) {
                     return Invalid(InsufficientBalanceError)
                 }
-                Valid(WithdrawalPerformed(command.aggregateID, command.amount))
+                Valid(listOf(WithdrawalPerformed(command.aggregateID, command.amount)))
             }
             else -> Invalid(UnknownCommandError)
         }

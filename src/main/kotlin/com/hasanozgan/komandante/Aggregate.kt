@@ -24,11 +24,13 @@ abstract class Aggregate {
     var version: Int = 0
 
     open fun apply(event: Event): Option<DomainError> {
-        return Some(UnknownEventError)
+        logger.warn("unknown event ${event}")
+        return None
     }
 
-    open fun handle(command: Command): Validated<DomainError, Event> {
-        return Invalid(UnknownCommandError)
+    open fun handle(command: Command): Validated<DomainError, List<Event>> {
+        logger.warn("unknown command ${command}")
+        return Valid(emptyList())
     }
 
     fun store(event: Event) {
@@ -44,7 +46,7 @@ abstract class Aggregate {
 
     fun <T : Command> invokeHandle(command: T): Validated<DomainError, List<Event>> {
         try {
-            val method = getMethod(this, "handle", command) ?: return handle(command).map { listOf(it) }
+            val method = getMethod(this, "handle", command) ?: return handle(command)
 
             val result = method.invoke(this, command)
             if (result == null) {
@@ -54,7 +56,6 @@ abstract class Aggregate {
                 is DomainError -> Invalid(result)
                 is Event -> Valid(listOf(result))
                 is Unit -> Valid(emptyList())
-
                 is List<*> -> Valid(result.map { it as Event })
                 is Some<*> -> toValidatedType(result.t)
                 is None -> Valid(emptyList())
@@ -68,7 +69,6 @@ abstract class Aggregate {
             return Invalid(UnknownCommandError)
         }
     }
-
 
     private fun toValidatedType(value: Any?): Validated<DomainError, List<Event>> {
         return when (value) {
@@ -89,8 +89,12 @@ abstract class Aggregate {
 
     fun invokeApply(event: Event): Option<DomainError> {
         val method = getMethod(this, "apply", event) ?: return apply(event)
+        val result = method.invoke(this, event)
 
-        return when (val result = method.invoke(this, event)) {
+        if (result == null) {
+            return None
+        }
+        return when (result) {
             is Some<*> -> Some(result.t as DomainError)
             else -> None
         }
