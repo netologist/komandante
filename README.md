@@ -6,7 +6,7 @@
 
 ## (under development, not ready for production)
 
-Komandante is CQRS / ES toolkit
+_**Komandante is CQRS / ES toolkit** inspired by [Eventhorizon](https://github.com/looplab/eventhorizon) and [Eventhus](https://github.com/mishudark/eventhus)_
 
 ### Example todo-mvc app
 `kotlin` `ktor` `exposed` `komandante`
